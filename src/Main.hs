@@ -40,10 +40,17 @@ generateSite = hakyll $ do
     route $ setExtension "html"
     make pandocCompiler
 
-  match "posts/*" $ do
+  match "posts/*.markdown" $ do
     route $ setExtension "html"
     build postContext $
       pandocCompiler
+        >>= loadAndApplyTemplate postTemplate postContext
+        >>= saveSnapshot snapshotDir
+
+  match "posts/*.typ" $ do
+    route $ setExtension "html"
+    compile $
+      makeCompiler typstProcessor
         >>= loadAndApplyTemplate postTemplate postContext
         >>= saveSnapshot snapshotDir
 
@@ -70,7 +77,9 @@ generateSite = hakyll $ do
 
   match "root/index.typ" $ do
     reroute $ takeFileName . flip replaceExtension "html"
-    make (makeCompiler typstProcessor)
+    compile $
+      makeCompiler typstProcessor
+        >>= loadAndApplyTemplate indexTemplate defaultContext
 
   match "root/*.md" $ do
     reroute toRootHTML

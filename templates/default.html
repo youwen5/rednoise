@@ -7,9 +7,22 @@
     $partial("templates/sidebar.html")$
     <div class="flex-1 md:mt-2">
       $partial("templates/nav-header.html")$
-      <main role="main" class="main-content prose-lg lg:prose-xl prose-headings:all-smallcaps prose-headings:text-love prose-h1:text-foreground">
-        <!-- <h1 class="text-center md:text-start">$title$</h1> -->
-        $body$
+      <main role="main" class="main-content lg:max-w-[40rem]">
+        <h1 class="all-smallcaps md:text-3xl text-2xl text-center mt-4">$title$</h1>
+        <div class="space-y-1 text-center mt-4">
+          $if(date)$
+          <p class="text-subtle text-md md:text-lg">$date$</p>
+          $endif$
+          $if(author)$
+          <p class="text-lg md:text-xl mt-5">$author$</p>
+          $endif$
+              <!-- @if let Some(location) = &metadata.location { p class="text-subtle text-md md:text-lg" {(location)} } -->
+              <!-- @if let Some(special_author) = &metadata.special_author { p class="text-lg md:text-xl mt-5" {span class="italic" {"by " } (special_author)} } -->
+        </div>
+        <div class="prose-lg lg:prose-xl prose-headings:all-smallcaps prose-headings:text-love prose-h1:text-foreground prose-list-snazzy prose-table-snazzy scroll-smooth mt-8">
+          $body$
+        </div>
+        $partial("templates/footer.html")$
       </main>
     </div>
   </body>

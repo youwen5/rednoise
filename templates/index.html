@@ -7,14 +7,11 @@
     $partial("templates/sidebar.html")$
     <div class="flex-1 md:mt-2">
       $partial("templates/nav-header.html")$
-      <main role="main" class="main-content">
-        <div
-          id="typst-injected"
-          class="prose-lg lg:prose-xl mt-2 prose-headings:all-smallcaps prose-headings:text-love prose-h1:text-foreground"
-        >
-          <!-- <h1 class="text-center md:text-start">$title$</h1> -->
+      <main role="main" class="main-content mt-2">
+        <div class="prose-lg lg:prose-xl prose-headings:all-smallcaps prose-headings:text-love prose-h1:text-foreground prose-list-snazzy prose-table-snazzy scroll-smooth">
           $body$
         </div>
+        $partial("templates/footer.html")$
       </main>
     </div>
   </body>

@@ -51,6 +51,7 @@
                   just
                   live-server
                   tailwindcss_4
+                  self.packages.${system}.typst-html-wrapper
                 ])
                 ++ [ typst ];
             };
@@ -124,7 +125,7 @@
               wrapProgram $out/bin/rednoise \
                 --prefix PATH : ${
                   pkgs.lib.makeBinPath [
-                    typst
+                    self.packages.${system}.typst-html-wrapper
                     pkgs.tailwindcss_4
                   ]
                 }
@@ -155,6 +156,10 @@
             version = "0.1.0";
             src = ./typst/pkgs/html-shim/0.1.0;
           };
+
+          typst-html-wrapper = pkgs.writeShellScriptBin "typst-html-wrapper" ''
+            ${pkgs.lib.getExe typst} compile --features html --format html - - | head -n -1 | tail -n +7
+          '';
         };
       }
     );

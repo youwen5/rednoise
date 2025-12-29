@@ -50,7 +50,7 @@ makeCompiler f = do
   makeItem transformed
 
 typstProcessor :: String -> IO String
-typstProcessor = readProcess "typst" ["compile", "-", "--format", "html", "-", "--features", "html"]
+typstProcessor = readProcess "typst-html-wrapper" []
 
 tailwindProcessor :: String -> IO String
 tailwindProcessor = readProcess "tailwindcss" ["-i", "-", "-o", "-"]

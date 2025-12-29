@@ -179,7 +179,7 @@ what I'm up to right now. Or explore the other pages on this website.
 
 #html.elem("p", attrs: (
   class: "text-sm text-subtle",
-))[I recently won a Nikon D7500 DSLR at HackMIT so hopefully I'll be posting more in the near future!]
+))[I need to automate this feed.]
 
 #let photo-urls = (
   (
