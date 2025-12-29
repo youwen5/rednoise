@@ -43,6 +43,41 @@
   )
 }
 
+#let webimg = (
+  src,
+  alt,
+  caption: none,
+  extraImgClass: none,
+  extraFigureClass: "",
+) => context {
+  if target() == "html" {
+    let base-img-classes = "rounded-md mx-auto shadow-sm dark:shadow-none shadow-gray-900"
+    let img-classes = if extraImgClass != none {
+      base-img-classes + " " + extraImgClass
+    } else {
+      base-img-classes
+    }
+    let img = html.elem("img", attrs: (
+      src: src,
+      alt: alt,
+      class: img-classes,
+      loading: "lazy",
+    ))
+    if caption == none {
+      img
+    } else {
+      html.elem("figure", attrs: (class: extraFigureClass), {
+        img
+        html.elem(
+          "figcaption",
+          attrs: (class: "text-[0.88em] text-center text-subtle"),
+          caption,
+        )
+      })
+    }
+  }
+}
+
 #let lucide-icon(name: "", class: "") = context {
   if target() == "html" {
     if class != "" {
