@@ -1,0 +1,167 @@
+{
+  inputs = {
+    haskellNix.url = "github:input-output-hk/haskell.nix";
+    nixpkgs.follows = "haskellNix/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+    pre-commit.url = "github:cachix/git-hooks.nix";
+    pre-commit.inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      haskellNix,
+      pre-commit,
+    }:
+    let
+      supportedSystems = [
+        "x86_64-linux"
+      ];
+    in
+    flake-utils.lib.eachSystem supportedSystems (
+      system:
+      let
+        overlays = [
+          haskellNix.overlay
+          (final: _prev: {
+            haskell-nix = _prev.haskell-nix // {
+              extraPkgconfigMappings = _prev.haskell-nix.extraPkgconfigMappings // {
+                # String pkgconfig-depends names are mapped to lists of Nixpkgs
+                # package names
+                "z3" = [ "z3" ];
+              };
+            };
+            rednoiseProject = final.haskell-nix.project' {
+              src = ./.;
+              compiler-nix-name = "ghc9122";
+              # This is used by `nix develop .` to open a shell for use with
+              # `cabal`, `hlint` and `haskell-language-server`
+              shell.tools = {
+                cabal = { };
+                hlint = { };
+                haskell-language-server = { };
+                cabal-gild = { };
+                fourmolu = { };
+              };
+              # Non-Haskell shell tools go here
+              shell.buildInputs =
+                (with pkgs; [
+                  just
+                  live-server
+                  tailwindcss_4
+                ])
+                ++ [ typst ];
+            };
+          })
+        ];
+        pkgs = import nixpkgs {
+          inherit system overlays;
+          inherit (haskellNix) config;
+        };
+
+        flake = pkgs.rednoiseProject.flake { };
+
+        typst = pkgs.typst.withPackages (
+          p: with p; [
+            fletcher_0_5_8
+            cetz_0_4_2
+            oxifmt_0_2_1
+            self.packages.${system}.html-shim
+          ]
+        );
+      in
+      flake
+      // {
+        checks = {
+          pre-commit-check = pre-commit.lib.${system}.run {
+            src = ./.;
+            hooks = {
+              check-merge-conflicts.enable = true;
+              commitizen.enable = true;
+              convco.enable = true;
+              cabal-gild.enable = true;
+              hlint.enable = true;
+              fourmolu = {
+                enable = true;
+              };
+              markdownlint.enable = true;
+              mdsh.enable = true;
+              deadnix.enable = true;
+              nil.enable = true;
+              nixfmt-rfc-style.enable = true;
+              statix.enable = true;
+              ripsecrets.enable = true;
+              typos.enable = true;
+              vale.enable = false;
+              typstyle.enable = true;
+              check-yaml.enable = true;
+              yamlfmt.enable = true;
+              check-case-conflicts.enable = true;
+              check-executables-have-shebangs.enable = true;
+              check-shebang-scripts-are-executable.enable = true;
+              check-symlinks.enable = true;
+              check-vcs-permalinks.enable = true;
+              detect-private-keys.enable = true;
+              end-of-file-fixer.enable = true;
+              mixed-line-endings.enable = true;
+              tagref.enable = true;
+              trim-trailing-whitespace.enable = true;
+              check-toml.enable = true;
+            };
+          };
+        };
+
+        packages = flake.packages // {
+          rednoise-unwrapped = flake.packages."rednoise:exe:rednoise";
+          rednoise = pkgs.stdenvNoCC.mkDerivation {
+            name = "rednoise";
+            src = self.packages.${system}.rednoise-unwrapped;
+            nativeBuildInputs = [ pkgs.makeWrapper ];
+            installPhase = ''
+              install -Dm755 ./bin/rednoise $out/bin/rednoise
+              wrapProgram $out/bin/rednoise \
+                --prefix PATH : ${
+                  pkgs.lib.makeBinPath [
+                    typst
+                    pkgs.tailwindcss_4
+                  ]
+                }
+            '';
+          };
+          site = pkgs.stdenvNoCC.mkDerivation {
+            name = "site";
+            src = ./.;
+            nativeBuildInputs = [ self.packages.${system}.rednoise ];
+
+            LANG = "en_US.UTF-8";
+            LOCALE_ARCHIVE = pkgs.lib.optionalString (
+              pkgs.stdenv.buildPlatform.libc == "glibc"
+            ) "${pkgs.glibcLocales}/lib/locale/locale-archive";
+
+            buildPhase = ''
+              rednoise build
+            '';
+            installPhase = ''
+              mkdir -p $out
+              mv ./_site/* $out
+            '';
+          };
+
+          default = self.packages.${system}.rednoise;
+          html-shim = pkgs.buildTypstPackage {
+            pname = "html-shim";
+            version = "0.1.0";
+            src = ./typst/pkgs/html-shim/0.1.0;
+          };
+        };
+      }
+    );
+
+  nixConfig = {
+    extra-substituters = [ "https://cache.iog.io" ];
+    extra-trusted-public-keys = [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" ];
+    allow-import-from-derivation = "true";
+  };
+}

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  $partial("templates/head.html")$
+  <body
+    class="antialiased mt-4 lg:mt-20 leading-relaxed mx-auto max-w-[1200px] flex gap-8 px-4 lg:px-6"
+  >
+    $partial("templates/sidebar.html")$
+    <div class="flex-1 md:mt-2">
+      $partial("templates/nav-header.html")$
+      <main role="main" class="main-content prose-lg lg:prose-xl prose-headings:all-smallcaps prose-headings:text-love prose-h1:text-foreground">
+        <!-- <h1 class="text-center md:text-start">$title$</h1> -->
+        $body$
+      </main>
+    </div>
+  </body>
+</html>
