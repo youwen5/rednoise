@@ -4,7 +4,6 @@ import Constants
 import Style
 import Utils
 
-import Data.Monoid (mappend)
 import Hakyll
 import System.FilePath (replaceExtension, takeFileName)
 
@@ -61,8 +60,8 @@ generateSite =
         posts <- compilePosts
         let archiveCtx =
               listField postsDir postContext (return posts)
-                `mappend` constField "title" "Archives"
-                `mappend` defaultContext
+                <> constField "title" "Archives"
+                <> defaultContext
 
         hydrate archiveCtx $ makeItem "" >>= loadAndApplyTemplate archiveTemplate archiveCtx
 
