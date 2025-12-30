@@ -6,7 +6,14 @@ import Types
 import Data.ByteString.Lazy qualified as LBS
 import GHC.IO.Handle (hClose)
 import Hakyll
-import System.FilePath (takeBaseName, takeDirectory, takeFileName, (</>))
+import System.FilePath (
+  joinPath,
+  splitDirectories,
+  takeBaseName,
+  takeDirectory,
+  takeFileName,
+  (</>),
+ )
 import System.IO.Temp (withSystemTempFile)
 import System.Process (callProcess, proc, readCreateProcess, readProcess)
 import System.Process.Internals
@@ -80,20 +87,10 @@ tailwindProcessor = readProcess "tailwindcss" ["-i", "-", "-o", "-"]
 toRootHTML :: FilePath -> FilePath
 toRootHTML p = takeBaseName p </> "index.html"
 
+-- drop the first parent dir of a path, if it exists
+dropFirstParent :: FilePath -> FilePath
+dropFirstParent = joinPath . drop 1 . splitDirectories
+
 -- take e.g. dir/abc.md -> dir/abc/index.html
 expandRoute :: FilePath -> FilePath
 expandRoute p = takeDirectory p </> takeBaseName p </> "index.html"
-
--- take e.g. fonts/degheest/fonts/otf/abc.otf -> fonts/degheest/abc.otf
-toFontDir :: FilePath -> FilePath
-toFontDir p =
-  let dir = takeDirectory (takeDirectory (takeDirectory p))
-      file = takeFileName p
-   in dir </> file
-
--- take e.g. fonts/lilex/otf/abc.otf -> fonts/lilex/abc.otf
-toFontDirSimple :: FilePath -> FilePath
-toFontDirSimple p =
-  let dir = takeDirectory (takeDirectory p)
-      file = takeFileName p
-   in dir </> file
