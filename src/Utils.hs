@@ -3,14 +3,16 @@ module Utils where
 import Constants
 import Types
 
+import Data.ByteString.Lazy qualified as LBS
+import GHC.IO.Handle (hClose)
 import Hakyll
 import System.FilePath (takeBaseName, takeDirectory, takeFileName, (</>))
-import System.Process (readProcess)
+import System.IO.Temp (withSystemTempFile)
+import System.Process (callProcess, proc, readCreateProcess, readProcess)
+import System.Process.Internals
 
 postContext :: Context String
-postContext =
-  dateField "date" "%B %e, %Y"
-    `mappend` defaultContext
+postContext = dateField "date" "%B %e, %Y" <> defaultContext
 
 makeFeed :: Renderer -> Rules ()
 makeFeed renderer = do
@@ -49,8 +51,27 @@ makeCompiler f = do
   transformed <- unsafeCompiler $ f (itemBody body)
   makeItem transformed
 
-typstProcessor :: String -> IO String
-typstProcessor = readProcess "typst-html-wrapper" []
+makeCompiler' :: (FilePath -> String -> IO String) -> Compiler (Item String)
+makeCompiler' f = do
+  filePath <- getResourceFilePath
+  body <- getResourceBody
+  transformed <- unsafeCompiler $ f filePath (itemBody body)
+  makeItem transformed
+
+typstProcessor :: FilePath -> String -> IO String
+typstProcessor fp content = do
+  let dir = takeDirectory fp
+  let processSpec = (proc "typst-html-wrapper" []){cwd = Just dir}
+  readCreateProcess processSpec content
+
+typstPdfCompiler :: Compiler (Item LBS.ByteString)
+typstPdfCompiler = do
+  sourcePath <- getResourceFilePath
+  pdfContent <- unsafeCompiler $ withSystemTempFile "hakyll-typst.pdf" $ \tempPath handle -> do
+    hClose handle
+    callProcess "typst" ["compile", sourcePath, tempPath, "--features", "html"]
+    LBS.readFile tempPath
+  makeItem pdfContent
 
 tailwindProcessor :: String -> IO String
 tailwindProcessor = readProcess "tailwindcss" ["-i", "-", "-o", "-"]

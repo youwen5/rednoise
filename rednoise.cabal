@@ -30,24 +30,26 @@ executable rednoise
   main-is: Main.hs
   other-modules:
     Constants
+    Style
     Types
     Utils
-    Style
 
   build-depends:
     base,
+    bytestring,
+    clay,
     filepath,
     hakyll,
-    text,
-    clay,
+    liquidhaskell,
     process,
-    liquidhaskell
+    temporary,
+    text,
 
   default-language: GHC2024
   default-extensions:
     DerivingStrategies
-    OverloadedStrings
     MultilineStrings
+    OverloadedStrings
 
   if flag(threaded)
     ghc-options:

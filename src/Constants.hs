@@ -7,15 +7,15 @@ import System.FilePath ((</>))
 feed :: FeedConfiguration
 feed =
   FeedConfiguration
-    { feedTitle = "Monadic"
-    , feedDescription = "Burritos, free software, and related literature"
-    , feedAuthorName = "Ananth Venkatesh"
-    , feedAuthorEmail = "ananth@monadi.cc"
-    , feedRoot = "https://monadi.cc"
+    { feedTitle = "web.youwen.dev"
+    , feedDescription = "Youwen www site."
+    , feedAuthorName = "Youwen Wu"
+    , feedAuthorEmail = "youwen@functor.systems"
+    , feedRoot = "https://web.youwen.dev"
     }
 
 topLevel :: [Identifier]
-topLevel = ["about.rst", "contact.md"]
+topLevel = ["about.typ", "impressum.typ"]
 
 snapshotDir :: FilePath
 snapshotDir = "content"

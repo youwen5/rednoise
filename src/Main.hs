@@ -50,7 +50,7 @@ generateSite = hakyll $ do
   match "posts/*.typ" $ do
     route $ setExtension "html"
     compile $
-      makeCompiler typstProcessor
+      makeCompiler' typstProcessor
         >>= loadAndApplyTemplate postTemplate postContext
         >>= saveSnapshot snapshotDir
 
@@ -78,16 +78,20 @@ generateSite = hakyll $ do
   match "root/index.typ" $ do
     reroute $ takeFileName . flip replaceExtension "html"
     compile $
-      makeCompiler typstProcessor
+      makeCompiler' typstProcessor
         >>= loadAndApplyTemplate indexTemplate defaultContext
 
-  match "root/*.md" $ do
-    reroute toRootHTML
-    make pandocCompiler
+  match ("cv/index.typ" .||. "cv/short.typ") $ do
+    route $ setExtension "html"
+    make (makeCompiler' typstProcessor)
+
+  match ("cv/index.typ" .||. "cv/short.typ") $ version "pdf" $ do
+    route $ setExtension "pdf"
+    compile typstPdfCompiler
 
   match "root/*.typ" $ do
     reroute toRootHTML
-    make $ makeCompiler typstProcessor
+    make $ makeCompiler' typstProcessor
 
   match "templates/*" $ compile templateBodyCompiler
 

@@ -69,6 +69,8 @@
             fletcher_0_5_8
             cetz_0_4_2
             oxifmt_0_2_1
+            cmarker_0_1_5
+            showybox_2_0_4
             self.packages.${system}.html-shim
           ]
         );
