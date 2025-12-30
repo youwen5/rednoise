@@ -42,12 +42,16 @@ generateSite =
       route $ setExtension "html"
       make pandocCompiler
 
+    -- match "posts/*.markdown" $ do
+    --   route $ setExtension "html"
+    --   build postContext $
+    --     pandocCompiler
+    --       >>= loadAndApplyTemplate postTemplate postContext
+    --       >>= saveSnapshot snapshotDir
+
     match "posts/*.markdown" $ do
       route $ setExtension "html"
-      build postContext $
-        pandocCompiler
-          >>= loadAndApplyTemplate postTemplate postContext
-          >>= saveSnapshot snapshotDir
+      compile $ pandocCompiler >>= blazeTemplater
 
     match "posts/*.typ" $ do
       route $ setExtension "html"
@@ -56,9 +60,9 @@ generateSite =
           >>= loadAndApplyTemplate postTemplate postContext
           >>= saveSnapshot snapshotDir
 
-    create ["test.html"] $ do
-      sameRoute
-      compile $ makeItem $ renderHtml Templates.test
+    -- create ["test.html"] $ do
+    --   sameRoute
+    --   compile $ makeItem $ renderHtml Templates.test
 
     create ["archive.html"] $ do
       reroute expandRoute
