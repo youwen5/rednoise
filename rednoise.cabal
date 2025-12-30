@@ -31,11 +31,13 @@ executable rednoise
   other-modules:
     Constants
     Style
+    Templates
     Types
     Utils
 
   build-depends:
     base,
+    blaze-html,
     bytestring,
     clay,
     filepath,

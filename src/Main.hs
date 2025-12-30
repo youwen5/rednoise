@@ -2,10 +2,12 @@ module Main where
 
 import Constants
 import Style
+import Templates
 import Utils
 
 import Hakyll
 import System.FilePath (replaceExtension, takeFileName)
+import Text.Blaze.Html.Renderer.String
 
 main :: IO ()
 main = generateSite
@@ -53,6 +55,10 @@ generateSite =
         makeCompiler' typstProcessor
           >>= loadAndApplyTemplate postTemplate postContext
           >>= saveSnapshot snapshotDir
+
+    create ["test.html"] $ do
+      sameRoute
+      compile $ makeItem $ renderHtml Templates.test
 
     create ["archive.html"] $ do
       reroute expandRoute

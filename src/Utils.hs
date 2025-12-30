@@ -25,7 +25,7 @@ makeFeed :: Renderer -> Rules ()
 makeFeed renderer = do
   route idRoute
   compile $ do
-    let feedCtx = postContext `mappend` bodyField "description"
+    let feedCtx = postContext <> bodyField "description"
     posts <-
       fmap (take 10) . recentFirst
         =<< loadAllSnapshots "posts/*" "content"
@@ -79,6 +79,9 @@ typstPdfCompiler = do
     callProcess "typst" ["compile", sourcePath, tempPath, "--features", "html"]
     LBS.readFile tempPath
   makeItem pdfContent
+
+blazeTemplater = do
+  getResourceLBS
 
 tailwindProcessor :: String -> IO String
 tailwindProcessor = readProcess "tailwindcss" ["-i", "-", "-o", "-"]
