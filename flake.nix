@@ -130,6 +130,7 @@
                   pkgs.lib.makeBinPath [
                     self.packages.${system}.typst-html-wrapper
                     pkgs.tailwindcss_4
+                    typst
                   ]
                 }
             '';
