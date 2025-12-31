@@ -1,5 +1,6 @@
 module Main where
 
+import Compilers
 import Constants
 import Style
 import Templates
@@ -44,9 +45,9 @@ generateSite =
       sameRoute
       compile compressCssCompiler
 
-    match (fromList topLevel) $ do
-      route $ setExtension "html"
-      make pandocCompiler
+    -- match (fromList topLevel) $ do
+    --   route $ setExtension "html"
+    --   make pandocCompiler
 
     -- match "posts/*.markdown" $ do
     --   route $ setExtension "html"
@@ -65,20 +66,20 @@ generateSite =
     match "posts/*.typ" $ do
       route $ setExtension "html"
       compile $
-        makeCompiler' typstProcessor
+        typstHtmlCompiler postContext
           >>= saveSnapshot snapshotDir
           >>= blazeTemplater Templates.defaultTemplate postContext
 
-    create ["archive.html"] $ do
-      reroute expandRoute
-      compile $ do
-        posts <- compilePosts
-        let archiveCtx =
-              listField postsDir postContext (return posts)
-                <> constField "title" "Archives"
-                <> defaultContext
-
-        hydrate archiveCtx $ makeItem "" >>= loadAndApplyTemplate archiveTemplate archiveCtx
+    -- create ["archive.html"] $ do
+    --   reroute expandRoute
+    --   compile $ do
+    --     posts <- compilePosts
+    --     let archiveCtx =
+    --           listField postsDir postContext (return posts)
+    --             <> constField "title" "Archives"
+    --             <> defaultContext
+    --
+    --     hydrate archiveCtx $ makeItem "" >>= loadAndApplyTemplate archiveTemplate archiveCtx
 
     -- match "root/index.html" $ do
     --   reroute takeFileName
@@ -93,12 +94,14 @@ generateSite =
     match "root/index.typ" $ do
       reroute $ takeFileName . flip replaceExtension "html"
       compile $
-        makeCompiler' typstProcessor
+        typstHtmlCompiler defaultContext
           >>= blazeTemplater indexTemplate defaultContext
 
     match ("cv/index.typ" .||. "cv/short.typ") $ do
       route $ setExtension "html"
-      make (makeCompiler' typstProcessor)
+      compile $
+        typstHtmlCompiler defaultContext
+          >>= blazeTemplater Templates.defaultTemplate defaultContext
 
     match "cv/index.typ" $ version "pdf" $ do
       reroute $ \p ->
@@ -120,7 +123,7 @@ generateSite =
 
     match "root/*.typ" $ do
       reroute toRootHTML
-      make $ makeCompiler' typstProcessor
+      compile $ typstHtmlCompiler defaultContext
 
     match "templates/*" $ compile templateBodyCompiler
 

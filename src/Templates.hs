@@ -11,16 +11,7 @@ import Data.Maybe
 import Hakyll
 import Text.Blaze.Html5 as H
 import Text.Blaze.Html5.Attributes as A
-
--- Helper function to extract fields from a Context a, given a corresponding Item a and key.
-getField :: Context a -> Item a -> String -> Compiler (Maybe String)
-getField ctx item key = optional $ do
-  -- unContext looks up the key. The [] is for arguments (usually empty for simple fields)
-  field <- unContext ctx key [] item
-  -- todo: handle other types of fields
-  case field of
-    StringField s -> return s
-    _ -> fail $ "Field " ++ key ++ " is not a string"
+import Utils
 
 pageHead :: Maybe String -> Maybe String -> Maybe String -> Html
 pageHead title pagetitle slug =

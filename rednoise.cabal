@@ -30,6 +30,7 @@ executable rednoise
   main-is: Main.hs
   other-modules:
     BlazeSupport
+    Compilers
     Constants
     Style
     Templates

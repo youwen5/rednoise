@@ -26,9 +26,6 @@ postsDir = "posts"
 templatesDir :: FilePath
 templatesDir = "templates"
 
-defaultTemplate :: Identifier
-defaultTemplate = fromFilePath $ templatesDir </> "default.html"
-
 archiveTemplate :: Identifier
 archiveTemplate = fromFilePath $ templatesDir </> "archive.html"
 

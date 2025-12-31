@@ -26,6 +26,8 @@ title: Youwen Wu >> Welcome Home.
   "",
 )
 
+the value of foo is #sys.inputs.foo
+
 
 I'm a member of the
 #link("https://www.mit.edu/~ajzd/opencompute/")[MIT OpenCompute Laboratory]

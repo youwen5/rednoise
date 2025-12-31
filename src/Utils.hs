@@ -3,23 +3,9 @@ module Utils where
 import Constants
 import Types
 
-import Data.ByteString.Lazy qualified as LBS
-import GHC.IO.Handle (hClose)
+import Control.Applicative (optional)
 import Hakyll
-import System.FilePath (
-  joinPath,
-  splitDirectories,
-  takeBaseName,
-  takeDirectory,
-  takeFileName,
-  (</>),
- )
-import System.IO.Temp (withSystemTempFile)
-import System.Process (callProcess, proc, readCreateProcess, readProcess)
-import System.Process.Internals
-import Templates qualified
-import Text.Blaze.Html.Renderer.String
-import Text.Blaze.Html5 (Html)
+import System.FilePath (joinPath, splitDirectories, takeBaseName, takeDirectory, (</>))
 
 postContext :: Context String
 postContext = dateField "date" "%B %e, %Y" <> defaultContext
@@ -40,58 +26,11 @@ globbify dir = fromGlob $ dir </> "*"
 compilePosts :: Compiler [Item String]
 compilePosts = recentFirst =<< (loadAll . globbify) postsDir
 
-hydrate :: Context String -> Compiler (Item String) -> Compiler (Item String)
-hydrate context page = page >>= loadAndApplyTemplate defaultTemplate context >>= relativizeUrls
-
-build :: Context String -> Compiler (Item String) -> Rules ()
-build context = compile . hydrate context
-
-make :: Compiler (Item String) -> Rules ()
-make = compile . hydrate defaultContext
-
 sameRoute :: Rules ()
 sameRoute = route idRoute
 
 reroute :: (FilePath -> FilePath) -> Rules ()
 reroute f = route $ customRoute $ f . toFilePath
-
-makeCompiler :: (String -> IO String) -> Compiler (Item String)
-makeCompiler f = do
-  body <- getResourceBody
-  transformed <- unsafeCompiler $ f (itemBody body)
-  makeItem transformed
-
-makeCompiler' :: (FilePath -> String -> IO String) -> Compiler (Item String)
-makeCompiler' f = do
-  filePath <- getResourceFilePath
-  body <- getResourceBody
-  transformed <- unsafeCompiler $ f filePath (itemBody body)
-  makeItem transformed
-
-typstProcessor :: FilePath -> String -> IO String
-typstProcessor fp content = do
-  let dir = takeDirectory fp
-  let processSpec = (proc "typst-html-wrapper" []){cwd = Just dir}
-  readCreateProcess processSpec content
-
-typstPdfCompiler :: Compiler (Item LBS.ByteString)
-typstPdfCompiler = do
-  sourcePath <- getResourceFilePath
-  pdfContent <- unsafeCompiler $ withSystemTempFile "hakyll-typst.pdf" $ \tempPath handle -> do
-    hClose handle
-    callProcess "typst" ["compile", sourcePath, tempPath, "--features", "html"]
-    LBS.readFile tempPath
-  makeItem pdfContent
-
-blazeTemplater ::
-  forall t.
-  (Context t -> Item t -> Compiler Html) -> Context t -> Item t -> Compiler (Item String)
-blazeTemplater template ctx item = do
-  compiledHtml <- template ctx item
-  makeItem $ renderHtml compiledHtml
-
-tailwindProcessor :: String -> IO String
-tailwindProcessor = readProcess "tailwindcss" ["-i", "-", "-o", "-"]
 
 -- take e.g. root/abc.md -> /abc/index.html
 toRootHTML :: FilePath -> FilePath
@@ -104,3 +43,13 @@ dropFirstParent = joinPath . drop 1 . splitDirectories
 -- take e.g. dir/abc.md -> dir/abc/index.html
 expandRoute :: FilePath -> FilePath
 expandRoute p = takeDirectory p </> takeBaseName p </> "index.html"
+
+-- Helper function to extract fields from a Context a, given a corresponding Item a and key.
+getField :: Context a -> Item a -> String -> Compiler (Maybe String)
+getField ctx item key = optional $ do
+  -- unContext looks up the key. The [] is for arguments (usually empty for simple fields)
+  field <- unContext ctx key [] item
+  -- todo: handle other types of fields
+  case field of
+    StringField s -> return s
+    _ -> fail $ "Field " ++ key ++ " is not a string"
