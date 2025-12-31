@@ -35,8 +35,5 @@ archiveTemplate = fromFilePath $ templatesDir </> "archive.html"
 postTemplate :: Identifier
 postTemplate = fromFilePath $ templatesDir </> "default.html"
 
-indexTemplate :: Identifier
-indexTemplate = fromFilePath $ templatesDir </> "index.html"
-
 deepblue :: Color
 deepblue = "#004bfe"

@@ -6,7 +6,13 @@ import Templates
 import Utils
 
 import Hakyll
-import System.FilePath (replaceExtension, takeFileName)
+import System.FilePath (
+  replaceBaseName,
+  replaceExtension,
+  takeDirectory,
+  takeFileName,
+  (</>),
+ )
 import Text.Blaze.Html.Renderer.String
 
 main :: IO ()
@@ -51,19 +57,17 @@ generateSite =
 
     match "posts/*.markdown" $ do
       route $ setExtension "html"
-      compile $ pandocCompiler >>= blazeTemplater Templates.defaultTemplate postContext
+      compile $
+        pandocCompiler
+          >>= saveSnapshot snapshotDir
+          >>= blazeTemplater Templates.defaultTemplate postContext
 
     match "posts/*.typ" $ do
       route $ setExtension "html"
       compile $
         makeCompiler' typstProcessor
-          -- >>= loadAndApplyTemplate postTemplate postContext
-          >>= blazeTemplater Templates.defaultTemplate postContext
           >>= saveSnapshot snapshotDir
-
-    -- create ["test.html"] $ do
-    --   sameRoute
-    --   compile $ makeItem $ renderHtml Templates.test
+          >>= blazeTemplater Templates.defaultTemplate postContext
 
     create ["archive.html"] $ do
       reroute expandRoute
@@ -90,14 +94,28 @@ generateSite =
       reroute $ takeFileName . flip replaceExtension "html"
       compile $
         makeCompiler' typstProcessor
-          >>= loadAndApplyTemplate indexTemplate defaultContext
+          >>= blazeTemplater indexTemplate defaultContext
 
     match ("cv/index.typ" .||. "cv/short.typ") $ do
       route $ setExtension "html"
       make (makeCompiler' typstProcessor)
 
-    match ("cv/index.typ" .||. "cv/short.typ") $ version "pdf" $ do
-      route $ setExtension "pdf"
+    match "cv/index.typ" $ version "pdf" $ do
+      reroute $ \p ->
+        takeDirectory p
+          </> ( (takeFileName . flip replaceBaseName "youwen-wu-cv-full")
+                  . (takeFileName . flip replaceExtension "pdf")
+              )
+            p
+      compile typstPdfCompiler
+
+    match "cv/short.typ" $ version "pdf" $ do
+      reroute $ \p ->
+        takeDirectory p
+          </> ( (takeFileName . flip replaceBaseName "youwen-wu-cv-short")
+                  . (takeFileName . flip replaceExtension "pdf")
+              )
+            p
       compile typstPdfCompiler
 
     match "root/*.typ" $ do
@@ -106,7 +124,6 @@ generateSite =
 
     match "templates/*" $ compile templateBodyCompiler
 
---
--- create ["atom.xml"] $ makeFeed renderAtom
--- create ["feed.xml"] $ makeFeed renderRss
--- create ["feed.json"] $ makeFeed renderJson
+    create ["atom.xml"] $ makeFeed renderAtom
+    create ["feed.xml"] $ makeFeed renderRss
+    create ["feed.json"] $ makeFeed renderJson
