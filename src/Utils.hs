@@ -1,11 +1,19 @@
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Utils where
 
 import Constants
 import Types
 
 import Control.Applicative (optional)
+import Data.List (intercalate)
+import Data.Maybe (catMaybes, mapMaybe)
 import Hakyll
 import System.FilePath (joinPath, splitDirectories, takeBaseName, takeDirectory, (</>))
+
+data ListData = forall a. ListData (Context a) [Item a]
 
 postContext :: Context String
 postContext = dateField "date" "%B %e, %Y" <> defaultContext
@@ -45,11 +53,56 @@ expandRoute :: FilePath -> FilePath
 expandRoute p = takeDirectory p </> takeBaseName p </> "index.html"
 
 -- Helper function to extract fields from a Context a, given a corresponding Item a and key.
-getField :: Context a -> Item a -> String -> Compiler (Maybe String)
-getField ctx item key = optional $ do
+getStringField :: Context a -> Item a -> String -> Compiler (Maybe String)
+getStringField ctx item key = optional $ do
   -- unContext looks up the key. The [] is for arguments (usually empty for simple fields)
   field <- unContext ctx key [] item
   -- todo: handle other types of fields
   case field of
     StringField s -> return s
     _ -> fail $ "Field " ++ key ++ " is not a string"
+
+{- | A generic function that decides how to turn a list of items into a String.
+  We need RankNTypes because we don't know what type 'b' the list holds.
+-}
+type ListHandler = forall b. Context b -> [Item b] -> Compiler String
+
+flattenContext ::
+  ListHandler ->
+  [String] ->
+  Context a ->
+  Item a ->
+  Compiler [(String, String)]
+flattenContext listHandler keys ctx item = do
+  pairs <- mapM extract keys
+  return $ catMaybes pairs
+ where
+  extract key = do
+    field <- optional $ unContext ctx key [] item
+    case field of
+      Just (StringField s) -> return $ Just (key, s)
+      Just (ListField innerCtx items) -> do
+        s <- listHandler innerCtx items
+        return $ Just (key, s)
+      _ -> return Nothing
+
+-- | JSON List Handler
+jsonListHandler :: [String] -> ListHandler
+jsonListHandler subKeys = go
+ where
+  -- We define a helper 'go' with an explicit signature.
+  -- This brings 'b' into scope so 'processItem' can see it.
+  go :: forall b. Context b -> [Item b] -> Compiler String
+  go innerCtx items = do
+    itemStrings <- mapM processItem items
+    return $ "[" ++ intercalate "," itemStrings ++ "]"
+   where
+    -- Now 'b' refers to the SAME 'b' as in 'go'
+    processItem :: Item b -> Compiler String
+    processItem itm = do
+      -- We pass a dummy handler (\_ _ -> return "[]") for nested lists
+      fields <- flattenContext (\_ _ -> return "[]") subKeys innerCtx itm
+      let jsonFields = map formatPair fields
+      return $ "{" ++ intercalate "," jsonFields ++ "}"
+
+  formatPair (k, v) = show k ++ ":" ++ show v

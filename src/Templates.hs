@@ -4,7 +4,6 @@
 module Templates where
 
 import BlazeSupport
-import Control.Applicative (optional)
 import Control.Monad (forM_)
 import Data.ByteString.Lazy
 import Data.Maybe
@@ -206,14 +205,14 @@ defaultTemplate ctx item =
                 $ preEscapedToHtml (itemBody item)
               pageFooter
  where
-  getField' = getField ctx item
+  getField' = getStringField ctx item
 
 indexTemplate :: Context String -> Item String -> Compiler Html
 indexTemplate ctx item =
   do
-    title <- getField' "title"
-    pagetitle <- getField' "pagetitle"
-    slug <- getField' "slug"
+    title <- getStringField' "title"
+    pagetitle <- getStringField' "pagetitle"
+    slug <- getStringField' "slug"
 
     return $ docTypeHtml ! lang "en" $ do
       pageHead title pagetitle slug
@@ -231,7 +230,7 @@ indexTemplate ctx item =
                 $ preEscapedToHtml (itemBody item)
               pageFooter
  where
-  getField' = getField ctx item
+  getStringField' = getStringField ctx item
 
 inlinedFontCss :: Html
 inlinedFontCss =

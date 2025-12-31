@@ -94,7 +94,7 @@ generateSite =
     match "root/index.typ" $ do
       reroute $ takeFileName . flip replaceExtension "html"
       compile $
-        typstHtmlCompiler defaultContext
+        typstIndexCompiler defaultContext
           >>= blazeTemplater indexTemplate defaultContext
 
     match ("cv/index.typ" .||. "cv/short.typ") $ do

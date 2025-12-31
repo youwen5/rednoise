@@ -2,7 +2,7 @@ module Compilers where
 
 import Data.ByteString qualified as LBS
 import Data.List (intersperse)
-import Debug.Trace (traceShow)
+import Data.Maybe (fromMaybe)
 import GHC.IO.Handle (hClose)
 import Hakyll
 import System.FilePath (takeDirectory)
@@ -11,10 +11,9 @@ import System.Process (callProcess, proc, readCreateProcess, readProcess)
 import System.Process.Internals
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5 (Html)
+import Utils
 
-type KeyVal = (String, String)
-
-kvsToTypstArgs :: [KeyVal] -> [String]
+kvsToTypstArgs :: [(String, String)] -> [String]
 kvsToTypstArgs [] = []
 kvsToTypstArgs xs =
   (["--input"] ++)
@@ -22,21 +21,35 @@ kvsToTypstArgs xs =
     . map (\x -> fst x ++ "=" ++ snd x)
     $ xs
 
-typstProcessor :: FilePath -> String -> [KeyVal] -> IO String
+typstProcessor :: FilePath -> String -> [(String, String)] -> IO String
 typstProcessor fp content kv = do
   let dir = takeDirectory fp
   let processSpec =
-        (proc "typst-html-wrapper" (traceShow (kvsToTypstArgs kv) (kvsToTypstArgs kv)))
+        (proc "typst-html-wrapper" $ kvsToTypstArgs kv)
           { cwd = Just dir
           }
   readCreateProcess processSpec content
+
+keys :: [String]
+keys = ["title", "date"]
+
+typstIndexCompiler :: Context String -> Compiler (Item String)
+typstIndexCompiler ctx = do
+  filePath <- getResourceFilePath
+  body <- getResourceBody
+  title <- getStringField ctx body "title"
+  posts <- loadAll "posts/*"
+  let archiveCtx = listField "posts" postContext (return posts)
+  pairs <- flattenContext (jsonListHandler keys) ["posts"] archiveCtx body
+  transformed <-
+    unsafeCompiler $ typstProcessor filePath (itemBody body) pairs
+  makeItem transformed
 
 typstHtmlCompiler :: Context t -> Compiler (Item String)
 typstHtmlCompiler ctx = do
   filePath <- getResourceFilePath
   body <- getResourceBody
-  transformed <-
-    unsafeCompiler $ typstProcessor filePath (itemBody body) [("foo", "foo is really bar")]
+  transformed <- unsafeCompiler $ typstProcessor filePath (itemBody body) []
   makeItem transformed
 
 typstPdfCompiler :: Compiler (Item LBS.ByteString)
