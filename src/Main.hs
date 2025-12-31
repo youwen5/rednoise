@@ -123,7 +123,9 @@ generateSite =
 
     match "root/*.typ" $ do
       reroute toRootHTML
-      compile $ typstHtmlCompiler defaultContext
+      compile $
+        typstHtmlCompiler defaultContext
+          >>= blazeTemplater Templates.defaultTemplate defaultContext
 
     match "templates/*" $ compile templateBodyCompiler
 

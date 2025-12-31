@@ -31,7 +31,7 @@ typstProcessor fp content kv = do
   readCreateProcess processSpec content
 
 keys :: [String]
-keys = ["title", "date"]
+keys = ["title", "date", "url"]
 
 typstIndexCompiler :: Context String -> Compiler (Item String)
 typstIndexCompiler ctx = do
@@ -39,7 +39,8 @@ typstIndexCompiler ctx = do
   body <- getResourceBody
   title <- getStringField ctx body "title"
   posts <- loadAll "posts/*"
-  let archiveCtx = listField "posts" postContext (return posts)
+  sortedPosts <- recentFirst posts
+  let archiveCtx = listField "posts" postContext (return sortedPosts)
   pairs <- flattenContext (jsonListHandler keys) ["posts"] archiveCtx body
   transformed <-
     unsafeCompiler $ typstProcessor filePath (itemBody body) pairs

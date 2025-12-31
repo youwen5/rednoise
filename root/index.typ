@@ -149,7 +149,7 @@ what I'm up to right now. Or explore the other pages on this website.
 
 #html.elem("div", {
   for post in posts {
-    update(date: post.date, href: "#", {
+    update(date: post.date, href: post.url, {
       icon(name: "newspaper")
       post.title
     })
