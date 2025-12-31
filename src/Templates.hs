@@ -173,6 +173,8 @@ pageFooter = footer ! class_ "border-t mt-8 border-solid border-muted mb-4 text-
     a ! href "https://nixos.org/" $
       img ! width "88px" ! height "31px" ! alt "" ! src "/static/img/nixos.png"
     img ! width "88px" ! height "31px" ! alt "" ! src "/static/img/transnow2.gif"
+  script ! src "https://unpkg.com/lucide@latest" $ ""
+  script "lucide.createIcons();"
 
 defaultTemplate :: Context String -> Item String -> Compiler Html
 defaultTemplate ctx item =
