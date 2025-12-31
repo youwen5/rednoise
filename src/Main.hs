@@ -51,13 +51,14 @@ generateSite =
 
     match "posts/*.markdown" $ do
       route $ setExtension "html"
-      compile $ pandocCompiler >>= blazeTemplater
+      compile $ pandocCompiler >>= blazeTemplater Templates.defaultTemplate postContext
 
     match "posts/*.typ" $ do
       route $ setExtension "html"
       compile $
         makeCompiler' typstProcessor
-          >>= loadAndApplyTemplate postTemplate postContext
+          -- >>= loadAndApplyTemplate postTemplate postContext
+          >>= blazeTemplater Templates.defaultTemplate postContext
           >>= saveSnapshot snapshotDir
 
     -- create ["test.html"] $ do
@@ -105,6 +106,7 @@ generateSite =
 
     match "templates/*" $ compile templateBodyCompiler
 
-    create ["atom.xml"] $ makeFeed renderAtom
-    create ["feed.xml"] $ makeFeed renderRss
-    create ["feed.json"] $ makeFeed renderJson
+--
+-- create ["atom.xml"] $ makeFeed renderAtom
+-- create ["feed.xml"] $ makeFeed renderRss
+-- create ["feed.json"] $ makeFeed renderJson

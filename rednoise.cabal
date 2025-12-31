@@ -29,6 +29,7 @@ executable rednoise
   hs-source-dirs: src
   main-is: Main.hs
   other-modules:
+    BlazeSupport
     Constants
     Style
     Templates
@@ -38,6 +39,7 @@ executable rednoise
   build-depends:
     base,
     blaze-html,
+    blaze-markup,
     bytestring,
     clay,
     filepath,

@@ -19,6 +19,7 @@ import System.Process (callProcess, proc, readCreateProcess, readProcess)
 import System.Process.Internals
 import Templates qualified
 import Text.Blaze.Html.Renderer.String
+import Text.Blaze.Html5 (Html)
 
 postContext :: Context String
 postContext = dateField "date" "%B %e, %Y" <> defaultContext
@@ -82,9 +83,12 @@ typstPdfCompiler = do
     LBS.readFile tempPath
   makeItem pdfContent
 
-blazeTemplater s = do
-  -- body <- getResourceString
-  makeItem $ renderHtml (Templates.test (itemBody s))
+blazeTemplater ::
+  forall t.
+  (Context t -> Item t -> Compiler Html) -> Context t -> Item t -> Compiler (Item String)
+blazeTemplater template ctx item = do
+  compiledHtml <- template ctx item
+  makeItem $ renderHtml compiledHtml
 
 tailwindProcessor :: String -> IO String
 tailwindProcessor = readProcess "tailwindcss" ["-i", "-", "-o", "-"]
