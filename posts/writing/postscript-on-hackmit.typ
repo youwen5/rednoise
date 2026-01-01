@@ -2,6 +2,7 @@
 title: "Postscript on HackMIT"
 published: 2025-09-22
 author: "Warren Futaba Lex, Ananth Venkatesh, and Youwen Wu"
+location: "Massachvsetts Institvte of Technology, Cambridge, MA"
 ---
 
 // date: datetime(day: 22, year: 2025, month: 9),

@@ -1,6 +1,7 @@
 ---
-date: "datetime(day: 22, year: 2025, month: 9)"
 title: "Now"
+published: 2025-09-22
+enable-comments: true
 ---
 
 #import "@preview/html-shim:0.1.0": *

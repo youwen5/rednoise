@@ -38,7 +38,7 @@ typstIndexCompiler ctx = do
   filePath <- getResourceFilePath
   body <- getResourceBody
   title <- getStringField ctx body "title"
-  posts <- loadAll "posts/*"
+  posts <- loadAll "posts/**"
   sortedPosts <- recentFirst posts
   let archiveCtx = listField "posts" postContext (return sortedPosts)
   pairs <- flattenContext (jsonListHandler keys) ["posts"] archiveCtx body

@@ -4,7 +4,7 @@
 module Templates where
 
 import BlazeSupport
-import Control.Monad (forM_)
+import Control.Monad (forM_, when)
 import Data.ByteString.Lazy
 import Data.Maybe
 import Hakyll
@@ -176,8 +176,31 @@ pageFooter = footer ! class_ "border-t mt-8 border-solid border-muted mb-4 text-
   script ! src "https://unpkg.com/lucide@latest" $ ""
   script "lucide.createIcons();"
 
-defaultTemplate :: Context String -> Item String -> Compiler Html
-defaultTemplate ctx item =
+giscusComponent :: Html
+giscusComponent = do
+  H.div ! class_ "smallcaps text-muted w-full text-center mt-6 mb-8 text-3xl" $
+    a ! href "/" ! class_ "hover:text-love" $
+      "yw"
+  script
+    ! src "https://giscus.app/client.js"
+    ! dataRepo "youwen5/web"
+    ! dataRepoId "R_kgDOOc2JBQ"
+    ! dataCategory "Announcements"
+    ! dataCategoryId "DIC_kwDOOc2JBc4Cp8xj"
+    ! dataMapping "pathname"
+    ! dataStrict "1"
+    ! dataReactionsEnabled "1"
+    ! dataEmitMetadata "0"
+    ! dataInputPosition "top"
+    ! dataTheme "https://web.youwen.dev/styles/giscus.css"
+    ! dataLang "en"
+    ! dataLoading "lazy"
+    ! crossorigin "anonymous"
+    ! async ""
+    $ ""
+
+defaultTemplate_ :: Bool -> Context String -> Item String -> Compiler Html
+defaultTemplate_ enableComments ctx item =
   do
     title <- getField' "title"
     author <- getField' "author"
@@ -185,7 +208,7 @@ defaultTemplate ctx item =
     pagetitle <- getField' "pagetitle"
     location <- getField' "location"
     slug <- getField' "slug"
-
+    enableComments' <- getField' "enable-comments"
     return $ docTypeHtml ! lang "en" $ do
       pageHead title pagetitle slug
       body
@@ -203,11 +226,18 @@ defaultTemplate ctx item =
                 forM_ author $ \author' -> p ! class_ "text-lg md:text-xl mt-5" $ em "by " >> toHtml author'
               H.div
                 ! class_
-                  "prose-lg lg:prose-xl prose-headings:all-smallcaps prose-headings:text-love prose-h1:text-foreground prose-list-snazzy prose-table-snazzy scroll-smooth"
+                  "prose-lg lg:prose-xl prose-headings:all-smallcaps prose-headings:text-love prose-h1:text-foreground prose-list-snazzy prose-table-snazzy scroll-smooth mt-8"
                 $ preEscapedToHtml (itemBody item)
+              when (enableComments || (fromMaybe "false" enableComments' == "true")) giscusComponent
               pageFooter
  where
   getField' = getStringField ctx item
+
+defaultTemplate :: Context String -> Item String -> Compiler Html
+defaultTemplate = defaultTemplate_ False
+
+postTemplate :: Context String -> Item String -> Compiler Html
+postTemplate = defaultTemplate_ True
 
 indexTemplate :: Context String -> Item String -> Compiler Html
 indexTemplate ctx item =

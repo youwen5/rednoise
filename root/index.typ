@@ -115,10 +115,14 @@ what I'm up to right now. Or explore the other pages on this website.
 
 #html.elem("p", attrs: (
   class: "text-sm text-subtle not-prose",
-))[#smallcaps[RSS] feed coming soon!]
+))[You may enjoy #link("/feed.xml")[RSS] and #link("/atom.xml")[Atom] feeds.]
 
 #let icon(name: "") = {
-  html.elem("span", attrs: (class: "my-auto w-[24px]"), lucide-icon(name: name))
+  html.elem(
+    "span",
+    attrs: (class: "my-auto w-[24px]"),
+    lucide-icon(name: name),
+  )
 }
 
 #let update(date: "", is-link: true, internal: true, href: "", body) = {
@@ -148,12 +152,16 @@ what I'm up to right now. Or explore the other pages on this website.
 }
 
 #html.elem("div", {
-  for post in posts {
+  for post in posts.slice(0, count: 4) {
     update(date: post.date, href: post.url, {
       icon(name: "newspaper")
       post.title
     })
   }
+  update(href: "/archive", date: icon(name: "move-right"), {
+    icon(name: "book")
+    [Archive (all posts)]
+  })
   // update(date: "Aug 31, 2025", href: "/writing/anatomy-of-a-nixos-module", {
   //   icon(name: "code")
   //   [Explainer: the anatomy of a NixOS module]
@@ -181,6 +189,7 @@ what I'm up to right now. Or explore the other pages on this website.
   //   },
   // )
 })
+
 
 = Photos
 

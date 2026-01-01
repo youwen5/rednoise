@@ -56,19 +56,25 @@ generateSite =
     --       >>= loadAndApplyTemplate postTemplate postContext
     --       >>= saveSnapshot snapshotDir
 
-    match "posts/*.markdown" $ do
-      route $ setExtension "html"
-      compile $
-        pandocCompiler
-          >>= saveSnapshot snapshotDir
-          >>= blazeTemplater Templates.defaultTemplate postContext
+    -- match "posts/*.markdown" $ do
+    --   route $ setExtension "html"
+    --   compile $
+    --     pandocCompiler
+    --       >>= saveSnapshot snapshotDir
+    --       >>= blazeTemplater Templates.defaultTemplate postContext
 
-    match "posts/*.typ" $ do
-      route $ setExtension "html"
+    match "posts/**.typ" $ do
+      -- route $ setExtension "html"
+      reroute $ takeFileName . flip replaceExtension "html"
+      reroute $ \p ->
+        dropFirstParent
+          ( takeDirectory p
+              </> takeFileName (replaceExtension p "html")
+          )
       compile $
         typstHtmlCompiler postContext
           >>= saveSnapshot snapshotDir
-          >>= blazeTemplater Templates.defaultTemplate postContext
+          >>= blazeTemplater Templates.postTemplate postContext
 
     -- create ["archive.html"] $ do
     --   reroute expandRoute
