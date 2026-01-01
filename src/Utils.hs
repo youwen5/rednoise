@@ -25,7 +25,7 @@ makeFeed renderer = do
     let feedCtx = postContext <> bodyField "description"
     posts <-
       fmap (take 10) . recentFirst
-        =<< loadAllSnapshots "posts/*" "content"
+        =<< loadAllSnapshots "posts/**" "content"
     renderer feed feedCtx posts
 
 globbify :: FilePath -> Pattern
