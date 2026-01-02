@@ -72,4 +72,3 @@ While we're at it, please consider the three different dashes:
 
   For users of inferior typesetting software, _use the real unicode symbols_!
 ]
-
