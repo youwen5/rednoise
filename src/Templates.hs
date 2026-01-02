@@ -256,25 +256,27 @@ postListItem ctx item = do
   description <- getField' "description"
   url <- getField' "url"
   date <- getField' "date"
-  -- pure $ li $ do
-  --   a ! href (toValue $ fromMaybe "#" url) ! class_ "text-link internal-link" $
-  --     toHtml (fromMaybe "blah" title)
-  --   forM_ description $ p . toHtml
   pure
     $ li
     $ a
       ! href (toValue $ fromMaybe "#" url)
       ! class_
-        "border-b-foreground border-b-1 py-1 px-1 hover:bg-foreground hover:text-bg w-full w-full font-serif flex justify-between flex-wrap-reverse content-center gap-x-2 gap-y-1 md:gap-4"
+        "w-full font-serif block gap-1 py-0 px-2 md:px-1 md:py-1 my-4 md:my-0 border-l-2 border-l-foreground md:border-l-0 hover:bg-foreground hover:text-bg space-y-1"
     $ do
-      H.span ! class_ "inline-flex gap-3" $ toHtml $ fromMaybe "broken" title
-      H.span ! class_ "inline-flex gap-4" $ do
-        forM_
-          date
-          ( (H.span ! class_ "font-light text-lg my-auto")
-              . (H.span ! class_ "all-smallcaps inline-block")
-              . toHtml
-          )
+      H.div
+        ! class_
+          "flex justify-between flex-wrap-reverse content-center gap-x-2 gap-y-1 md:gap-4"
+        $ do
+          H.span ! class_ "inline-flex gap-3" $ toHtml $ fromMaybe "broken" title
+          H.span ! class_ "inline-flex gap-4" $ do
+            forM_
+              date
+              ( (H.span ! class_ "font-light text-lg my-auto")
+                  . (H.span ! class_ "all-smallcaps inline-block")
+                  . toHtml
+              )
+      forM_ description $
+        (p ! class_ "text-subtle text-sm md:pl-2 md:border-l-2 md:border-subtle") . toHtml
  where
   getField' = getStringField ctx item
 
@@ -286,7 +288,11 @@ archivePage ctx item = do
   ListData innerCtx posts <- getList' "posts"
   sortedPosts <- recentFirst posts
   postsRendered <- mapM (postListItem innerCtx) sortedPosts
-  pure $ ul ! class_ "not-prose" $ mconcat postsRendered
+  pure $ do
+    p
+      "Here are most of the blog style posts on this site, sorted chronologically from newest to oldest. This is not an exhaustive sitemap."
+    H.div ! class_ "mx-auto max-w-10 border-t-1 border-t-foreground mb-4" $ ""
+    ul ! class_ "not-prose" $ mconcat postsRendered
 
 indexTemplate :: Context String -> Item String -> Compiler Html
 indexTemplate ctx item =
