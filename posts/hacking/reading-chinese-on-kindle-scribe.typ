@@ -1,6 +1,6 @@
 ---
 title: "How to set up Kindle Scribe for reading Chinese"
-published: 2025-05-13
+published: 2025-09-13
 ---
 
 // date: datetime(day: 13, year: 2025, month: 5),
