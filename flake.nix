@@ -145,6 +145,10 @@
               pkgs.stdenv.buildPlatform.libc == "glibc"
             ) "${pkgs.glibcLocales}/lib/locale/locale-archive";
 
+            TZ = "America/Los_Angeles";
+            GIT_COMMIT_HASH = builtins.toString (if (self ? rev) then self.rev else "unstable");
+            LAST_COMMIT_TIMESTAMP = builtins.toString (self.lastModified);
+
             buildPhase = ''
               rednoise build
             '';
