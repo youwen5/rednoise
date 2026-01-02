@@ -68,7 +68,7 @@ generateSite =
         let archiveCtx =
               listField postsDir postContext (return posts)
                 <> constField "title" "Archives"
-                <> defaultContext
+                <> rednoiseContext
         makeItem ""
           >>= blazeTemplater Templates.archivePage archiveCtx
           >>= blazeTemplater Templates.wideTemplate archiveCtx
@@ -76,14 +76,14 @@ generateSite =
     match "root/index.typ" $ do
       reroute $ takeFileName . flip replaceExtension "html"
       compile $
-        typstIndexCompiler defaultContext
-          >>= blazeTemplater indexTemplate defaultContext
+        typstIndexCompiler rednoiseContext
+          >>= blazeTemplater indexTemplate rednoiseContext
 
     match ("cv/index.typ" .||. "cv/short.typ") $ do
       route $ setExtension "html"
       compile $
-        typstHtmlCompiler defaultContext
-          >>= blazeTemplater Templates.defaultTemplate defaultContext
+        typstHtmlCompiler rednoiseContext
+          >>= blazeTemplater Templates.defaultTemplate rednoiseContext
 
     match "cv/index.typ" $ version "pdf" $ do
       reroute $ \p ->
@@ -106,11 +106,12 @@ generateSite =
     match "root/*.typ" $ do
       reroute toRootHTML
       compile $
-        typstHtmlCompiler defaultContext
-          >>= blazeTemplater Templates.defaultTemplate defaultContext
+        typstHtmlCompiler rednoiseContext
+          >>= blazeTemplater Templates.defaultTemplate rednoiseContext
 
     match "templates/*" $ compile templateBodyCompiler
 
     create ["atom.xml"] $ makeFeed renderAtom
     create ["feed.xml"] $ makeFeed renderRss
     create ["feed.json"] $ makeFeed renderJson
+

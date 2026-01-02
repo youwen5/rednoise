@@ -11,15 +11,45 @@ import Control.Applicative (optional)
 import Data.List (intercalate)
 import Data.Maybe (catMaybes, mapMaybe)
 import Hakyll
-import System.FilePath (joinPath, splitDirectories, takeBaseName, takeDirectory, (</>))
+import System.FilePath (
+  dropExtension,
+  dropFileName,
+  dropTrailingPathSeparator,
+  joinPath,
+  splitDirectories,
+  takeBaseName,
+  takeDirectory,
+  takeExtension,
+  takeFileName,
+  (</>),
+ )
 
 data ListData = forall a. ListData (Context a) [Item a]
 
 postContext :: Context String
-postContext = dateField "date" "%B %e, %Y" <> defaultContext
+postContext = dateField "date" "%B %e, %Y" <> rednoiseContext
+
+-- | Replace the default `url` context with a canonicalized form, available at `key`
+canonicalUrl :: String -> Context String
+canonicalUrl key = field key $ \item -> do
+  maybeRoute <- getRoute (itemIdentifier item)
+  pure $
+    maybe
+      ""
+      (toUrl . dropTrailingPathSeparator . canonicalizeUrl)
+      maybeRoute
+
+canonicalizeUrl :: String -> String
+canonicalizeUrl url
+  | takeFileName url == "index.html" = dropFileName url
+  | takeExtension url == "html" = dropExtension url
+  | otherwise = url
+
+rednoiseContext :: Context String
+rednoiseContext = canonicalUrl "url" <> Hakyll.defaultContext
 
 archiveContext :: [Item String] -> Context String
-archiveContext posts = listField "posts" postContext (return posts) <> defaultContext
+archiveContext posts = listField "posts" postContext (return posts) <> rednoiseContext
 
 makeFeed :: Renderer -> Rules ()
 makeFeed renderer = do
