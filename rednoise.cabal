@@ -12,7 +12,7 @@ maintainer: Youwen Wu <youwen@functor.systems>
 bug-reports: https://code.functor.systems/youwen/rednoise/issues
 stability: stable
 homepage: https://web.youwen.dev
-synopsis: My new website and blog
+synopsis: a website and blog
 category: Web, Text
 build-type: Simple
 description:
@@ -20,7 +20,7 @@ description:
 
 source-repository head
   type: git
-  location: https://code.functor.systems/youwen/rednoise
+  location: https://code.functor.systems/youwen/web
 
 flag threaded
   default: True
