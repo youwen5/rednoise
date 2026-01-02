@@ -86,18 +86,7 @@ generateSite =
                 <> defaultContext
         makeItem ""
           >>= blazeTemplater Templates.archivePage archiveCtx
-          >>= blazeTemplater Templates.defaultTemplate archiveCtx
-
-    create ["archive.html"] $ do
-      reroute expandRoute
-      compile $ do
-        posts <- compilePosts
-        let archiveCtx =
-              listField postsDir postContext (return posts)
-                <> constField "title" "Archives"
-                <> defaultContext
-
-        makeItem "" >>= loadAndApplyTemplate archiveTemplate archiveCtx
+          >>= blazeTemplater Templates.wideTemplate archiveCtx
 
     -- match "root/index.html" $ do
     --   reroute takeFileName

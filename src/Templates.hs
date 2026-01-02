@@ -199,8 +199,8 @@ giscusComponent = do
     ! async ""
     $ ""
 
-defaultTemplate_ :: Bool -> Context String -> Item String -> Compiler Html
-defaultTemplate_ enableComments ctx item =
+defaultTemplate_ :: Bool -> Bool -> Context String -> Item String -> Compiler Html
+defaultTemplate_ enableComments wide ctx item =
   do
     title <- getField' "title"
     author <- getField' "author"
@@ -218,45 +218,75 @@ defaultTemplate_ enableComments ctx item =
           desktopSidebar
           H.div ! class_ "flex-1 md:mt-2" $ do
             mobileHeader
-            main ! class_ "main-content lg:max-w-[40rem]" $ do
-              h1 ! class_ "all-smallcaps md:text-3xl text-2xl text-center mt-4" $ forM_ title toHtml
-              H.div ! class_ "space-y-1 text-center mt-4" $ do
-                forM_ date $ \date' -> p ! class_ "text-subtle text-md md:text-lg" $ toHtml date'
-                forM_ location $ \location' -> p ! class_ "text-subtle text-md md:text-lg" $ toHtml location'
-                forM_ author $ \author' -> p ! class_ "text-lg md:text-xl mt-5" $ em "by " >> toHtml author'
-              H.div
-                ! class_
-                  "prose-lg lg:prose-xl prose-headings:all-smallcaps prose-headings:text-love prose-h1:text-foreground prose-list-snazzy prose-table-snazzy scroll-smooth mt-8"
-                $ preEscapedToHtml (itemBody item)
-              when (enableComments || (fromMaybe "false" enableComments' == "true")) giscusComponent
-              pageFooter
+            main
+              ! class_
+                ( toValue
+                    ("main-content" ++ (if not wide then " lg:max-w-[40rem]" else ""))
+                )
+              $ do
+                h1 ! class_ "all-smallcaps md:text-3xl text-2xl text-center mt-4" $ forM_ title toHtml
+                H.div ! class_ "space-y-1 text-center mt-4" $ do
+                  forM_ date $ \date' -> p ! class_ "text-subtle text-md md:text-lg" $ toHtml date'
+                  forM_ location $ \location' -> p ! class_ "text-subtle text-md md:text-lg" $ toHtml location'
+                  forM_ author $ \author' -> p ! class_ "text-lg md:text-xl mt-5" $ em "by " >> toHtml author'
+                H.div
+                  ! class_
+                    "prose-lg lg:prose-xl prose-headings:all-smallcaps prose-headings:text-love prose-h1:text-foreground prose-list-snazzy prose-table-snazzy scroll-smooth mt-8"
+                  $ preEscapedToHtml (itemBody item)
+                when (enableComments || (fromMaybe "false" enableComments' == "true")) giscusComponent
+                pageFooter
  where
   getField' = getStringField ctx item
+
+defaultTemplate :: Context String -> Item String -> Compiler Html
+defaultTemplate = defaultTemplate_ False False
+
+postTemplate :: Context String -> Item String -> Compiler Html
+postTemplate = defaultTemplate_ True False
+
+wideTemplate :: Context String -> Item String -> Compiler Html
+wideTemplate = defaultTemplate_ False True
+
+-- icon :: String -> Html
+-- icon xs = H.span ! class_ "my-auto w-[24px]" $ H.i ! dataLucide xs
 
 postListItem :: Context t -> Item t -> Compiler Html
 postListItem ctx item = do
   title <- getField' "title"
   description <- getField' "description"
   url <- getField' "url"
-  pure $ li $ do
-    a ! href (toValue $ fromMaybe "#" url) ! class_ "text-link internal-link" $
-      toHtml (fromMaybe "blah" title)
-    forM_ description $ p . toHtml
+  date <- getField' "date"
+  -- pure $ li $ do
+  --   a ! href (toValue $ fromMaybe "#" url) ! class_ "text-link internal-link" $
+  --     toHtml (fromMaybe "blah" title)
+  --   forM_ description $ p . toHtml
+  pure
+    $ li
+    $ a
+      ! href (toValue $ fromMaybe "#" url)
+      ! class_
+        "border-b-foreground border-b-1 py-1 px-1 hover:bg-foreground hover:text-bg w-full w-full font-serif flex justify-between flex-wrap-reverse content-center gap-x-2 gap-y-1 md:gap-4"
+    $ do
+      H.span ! class_ "inline-flex gap-3" $ toHtml $ fromMaybe "broken" title
+      H.span ! class_ "inline-flex gap-4" $ do
+        forM_
+          date
+          ( (H.span ! class_ "font-light text-lg my-auto")
+              . (H.span ! class_ "all-smallcaps inline-block")
+              . toHtml
+          )
  where
   getField' = getStringField ctx item
+
+-- <span class="inline-flex gap-3"><span class="my-auto w-[24px]"></span>Three Isomorphism Theorems in Linear Algebra</span>
 
 archivePage :: Context String -> Item String -> Compiler Html
 archivePage ctx item = do
   let getList' = getList ctx item
   ListData innerCtx posts <- getList' "posts"
-  postsRendered <- mapM (postListItem innerCtx) posts
-  pure $ ul $ mconcat postsRendered
-
-defaultTemplate :: Context String -> Item String -> Compiler Html
-defaultTemplate = defaultTemplate_ False
-
-postTemplate :: Context String -> Item String -> Compiler Html
-postTemplate = defaultTemplate_ True
+  sortedPosts <- recentFirst posts
+  postsRendered <- mapM (postListItem innerCtx) sortedPosts
+  pure $ ul ! class_ "not-prose" $ mconcat postsRendered
 
 indexTemplate :: Context String -> Item String -> Compiler Html
 indexTemplate ctx item =
