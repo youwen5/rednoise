@@ -163,7 +163,8 @@ pageFooter commit ghc time = footer ! class_ "border-t mt-8 border-solid border-
     a
       ! class_ "text-link"
       ! href (toValue $ "https://github.com/youwen5/web/commit/" ++ commit)
-      $ toHtml commit
+      $ toHtml
+      $ Prelude.take 6 commit
     " using the Glorious Glasgow Haskell Compiler "
     toHtml ghc
     " at "
