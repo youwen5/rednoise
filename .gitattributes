@@ -1,4 +1,4 @@
-posts/**.typ linguist-documentation
-cv/**.typ linguist-documentation
-root/**.typ linguist-documentation
+posts/**/* linguist-documentation
+cv/**/* linguist-documentation
+root/**/* linguist-documentation
 css/*.css linguist-generated
