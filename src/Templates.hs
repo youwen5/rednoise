@@ -302,11 +302,77 @@ archivePage ctx item = do
   ListData innerCtx posts <- getList' "posts"
   sortedPosts <- recentFirst posts
   postsRendered <- mapM (postListItem innerCtx) sortedPosts
+  let a = H.a ! class_ "text-link internal-link"
   pure $ do
-    p
-      "Here are most of the blog style posts on this site, sorted chronologically from newest to oldest. This is not an exhaustive sitemap."
+    p $ do
+      "Here are most of the blog style posts on this site, sorted chronologically from newest to oldest. This is not an exhaustive sitemap. There is also an "
+      a ! href "/feed.xml" $ "RSS"
+      " feed, and an "
+      a ! href "/atom.xml" $ "Atom"
+      " feed."
     H.div ! class_ "mx-auto max-w-10 border-t-1 border-t-foreground mb-4" $ ""
     ul ! class_ "not-prose" $ mconcat postsRendered
+
+explorePage :: Context String -> Item String -> Compiler Html
+explorePage ctx item = do
+  let getList' = getList ctx item
+  ListData innerCtx posts <- getList' "posts"
+  sortedPosts <- recentFirst posts
+  postsRendered <- mapM (postListItem innerCtx) (Prelude.take 5 sortedPosts)
+  let a = H.a ! class_ "text-link internal-link"
+  pure $ do
+    p $ do
+      "This is more or less a human readable (but non-exhaustive) sitemap. This website is supposed to be partly a "
+      H.a
+        ! href
+          "https://www.technologyreview.com/2020/09/03/1007716/digital-gardens-let-you-cultivate-your-own-little-bit-of-the-internet/"
+        ! class_ "text-link external-link"
+        $ "digital garden"
+      ", so it might be helpful for the gardener (that’s me) to point out some trailheads. You should look at "
+      a ! href "/" $ "the main page"
+      " if you haven’t already, of course, for a brief introduction. The next major page is "
+      a ! href "/about" $ "about me"
+      ", which is really a brief autobiography of me, the human. The other major pages are "
+      a ! href "/now" $ "the now page"
+      ", which is a brief recap on what I am doing right now—I don’t mean at this immediate moment, but moreso the overall stuff I am focused on at this point in my life. Lastly, my "
+      a ! href "/cv" $ "CV is available"
+      " if you are interested."
+    p $ do
+      "If you are instead interested in how this website "
+      em "itself"
+      " was made, you might enjoy the "
+      a ! href "/colophon" $ "colophon"
+      " , wherein I detail all of the elaborate and non-standard technologies that go into this website."
+    p $ do
+      "Some miscellany includes a page about "
+      a ! href "/computing" $ "how I do my computing"
+      ", as well as a "
+      a ! href "/faqs" $ "FAQ"
+      " page, which is more of an advice page."
+    H.div
+      ! class_
+        "py-2 px-4 text-[0.8em] rounded-md border-1 border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-overlay leading-[1.5em]"
+      $ do
+        H.div $
+          H.span ! A.style "font-variant-caps: all-small-caps" $
+            H.span ! class_ "inline-block all-smallcaps" $
+              "By the way"
+        H.div ! class_ "!mb-0 mt-2 prose-p:mb-0 prose-p:mt-3" $ do
+          "You may have noticed that the hyperlinks have a little symbol next to them. This is a convenient guide for you, and "
+          a ! href "#" $ "internal links"
+          " to other pages on this website have a cross while "
+          H.a ! href "#" ! class_ "text-link external-link" $ "external links"
+          " to the World Wide Web at large have a little ring (those two links are fake)."
+    p $ do
+      "Instead of information about me, for a sense of the things I'm interested in, you might peruse the sidebar, where I’ve curated a few pages on this website across my primary interests—broadly construed, that’s hacking (aka programming for the uninitiated), mathematics, and everything else which is fun."
+    p $ do
+      "I also try to write occasionally, oftentimes about technical topics but also possibly just about my life and cool things happening. Here are the last 5 posts I’ve written:"
+    H.div ! class_ "mx-auto max-w-10 border-t-1 border-t-foreground mb-4" $ ""
+    ul ! class_ "not-prose" $ mconcat postsRendered
+    H.div ! class_ "mx-auto max-w-10 border-t-1 border-t-foreground mt-4" $ ""
+    p $ "And here is " >> (a ! href "/archive" $ "an archive of every post.")
+    p
+      "That’s pretty much the majority of good starting places to explore this site. Like I said, it’s supposed to be some sort of digital hypertext garden, so hyperlinks within pages may take you to branching paths yet unforeseen. Happy trails!"
 
 indexTemplate :: Context String -> Item String -> Compiler Html
 indexTemplate ctx item =

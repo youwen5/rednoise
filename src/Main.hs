@@ -99,6 +99,18 @@ generateSite = do
           >>= blazeTemplater Templates.archivePage archiveCtx
           >>= blazeTemplater Templates.wideTemplate archiveCtx
 
+    create ["explore.html"] $ do
+      reroute expandRoute
+      compile $ do
+        posts <- loadAll "posts/**"
+        let exploreCtx =
+              listField postsDir postContext (return posts)
+                <> constField "title" "Explore"
+                <> defaultContext
+        makeItem ""
+          >>= blazeTemplater Templates.explorePage exploreCtx
+          >>= blazeTemplater Templates.defaultTemplate exploreCtx
+
     match "root/index.typ" $ do
       reroute $ takeFileName . flip replaceExtension "html"
       compile $
