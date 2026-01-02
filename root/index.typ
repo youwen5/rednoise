@@ -76,6 +76,14 @@ what I'm up to right now. Or explore the other pages on this website.
   steer this thing!"
 ]
 
+#btw[
+  I recently embarked on a full redesign of the underlying infrastructure of
+  this website, switching from Rust to Haskell. The website mostly looks the
+  same, with a few upgraded features thanks to
+  #link("https://jaspervdj.be/hakyll/")[Hakyll], but there may be broken
+  hyperlinks or outdated content for a while. Pardon the dust!
+]
+
 // #html.elem(
 //   "div",
 //   attrs: (
