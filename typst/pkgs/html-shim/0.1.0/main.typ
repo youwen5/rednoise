@@ -137,6 +137,23 @@
   }
 }
 
+#let std-figure = figure
+#let figure(math: true, ..args) = context {
+  let figureClass = if math { "math block-math" } else { "" }
+  show std-figure: it => context {
+    if target() == "html" {
+      html.elem("figure", attrs: (class: figureClass), {
+        html.frame(it.body)
+        it.caption
+      })
+    } else {
+      it
+    }
+  }
+
+  std-figure(..args)
+}
+
 #let html-shim(body) = {
   show math.equation.where(block: true): it => context {
     if target() == "html" {
@@ -156,17 +173,6 @@
         attrs: (role: "math", class: "math inline-math"),
         html.frame(it),
       )
-    } else {
-      it
-    }
-  }
-
-  show figure: it => context {
-    if target() == "html" {
-      html.elem("figure", {
-        html.frame(it.body)
-        it.caption
-      })
     } else {
       it
     }
