@@ -1,6 +1,6 @@
 ---
 title: "Three Isomorphism Theorems in Linear Algebra"
-published: 2025-12-29
+published: 2025-06-19
 description: "A proof of the first three isomorphism theorems for linear algebra in particular."
 ---
 

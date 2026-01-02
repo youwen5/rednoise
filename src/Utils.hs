@@ -58,7 +58,7 @@ makeFeed renderer = do
     let feedCtx = postContext <> bodyField "description"
     posts <-
       fmap (take 10) . recentFirst
-        =<< loadAllSnapshots "posts/**" "content"
+        =<< loadAllSnapshots "posts/**" snapshotDir
     renderer feed feedCtx posts
 
 -- | dir/foo/bar/whatever -> /foo/bar/whatever/index.html
@@ -67,12 +67,6 @@ toRootHTML =
   dropFirstParent
     . (</> "index.html")
     . dropExtension
-
-globbify :: FilePath -> Pattern
-globbify dir = fromGlob $ dir </> "*"
-
-compilePosts :: Compiler [Item String]
-compilePosts = recentFirst =<< (loadAll . globbify) postsDir
 
 sameRoute :: Rules ()
 sameRoute = route idRoute

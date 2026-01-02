@@ -32,7 +32,6 @@ executable rednoise
     BlazeSupport
     Compilers
     Constants
-    Style
     Templates
     Types
     Utils
@@ -42,7 +41,6 @@ executable rednoise
     blaze-html,
     blaze-markup,
     bytestring,
-    clay,
     filepath,
     hakyll,
     liquidhaskell,

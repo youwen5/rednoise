@@ -2,7 +2,6 @@ module Main where
 
 import Compilers
 import Constants
-import Style
 import Templates
 import Utils
 
@@ -92,7 +91,7 @@ generateSite = do
       compile $ do
         posts <- loadAll "posts/**"
         let archiveCtx =
-              listField postsDir postContext (return posts)
+              listField "posts" postContext (return posts)
                 <> constField "title" "Archives"
                 <> defaultContext
         makeItem ""
@@ -104,7 +103,7 @@ generateSite = do
       compile $ do
         posts <- loadAll "posts/**"
         let exploreCtx =
-              listField postsDir postContext (return posts)
+              listField "posts" postContext (return posts)
                 <> constField "title" "Explore"
                 <> defaultContext
         makeItem ""
