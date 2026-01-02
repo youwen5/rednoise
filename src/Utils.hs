@@ -18,6 +18,9 @@ data ListData = forall a. ListData (Context a) [Item a]
 postContext :: Context String
 postContext = dateField "date" "%B %e, %Y" <> defaultContext
 
+archiveContext :: [Item String] -> Context String
+archiveContext posts = listField "posts" postContext (return posts) <> defaultContext
+
 makeFeed :: Renderer -> Rules ()
 makeFeed renderer = do
   route idRoute
@@ -61,6 +64,13 @@ getStringField ctx item key = optional $ do
   case field of
     StringField s -> return s
     _ -> fail $ "Field " ++ key ++ " is not a string"
+
+getList :: Context a -> Item a -> String -> Compiler ListData
+getList ctx item key = do
+  field <- unContext ctx key [] item
+  case field of
+    ListField innerCtx items -> return $ ListData innerCtx items
+    _ -> fail $ "Field " ++ key ++ " is not a list"
 
 {- | A generic function that decides how to turn a list of items into a String.
   We need RankNTypes because we don't know what type 'b' the list holds.

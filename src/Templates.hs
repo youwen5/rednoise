@@ -233,6 +233,25 @@ defaultTemplate_ enableComments ctx item =
  where
   getField' = getStringField ctx item
 
+postListItem :: Context t -> Item t -> Compiler Html
+postListItem ctx item = do
+  title <- getField' "title"
+  description <- getField' "description"
+  url <- getField' "url"
+  pure $ li $ do
+    a ! href (toValue $ fromMaybe "#" url) ! class_ "text-link internal-link" $
+      toHtml (fromMaybe "blah" title)
+    forM_ description $ p . toHtml
+ where
+  getField' = getStringField ctx item
+
+archivePage :: Context String -> Item String -> Compiler Html
+archivePage ctx item = do
+  let getList' = getList ctx item
+  ListData innerCtx posts <- getList' "posts"
+  postsRendered <- mapM (postListItem innerCtx) posts
+  pure $ ul $ mconcat postsRendered
+
 defaultTemplate :: Context String -> Item String -> Compiler Html
 defaultTemplate = defaultTemplate_ False
 

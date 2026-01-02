@@ -76,16 +76,28 @@ generateSite =
           >>= saveSnapshot snapshotDir
           >>= blazeTemplater Templates.postTemplate postContext
 
-    -- create ["archive.html"] $ do
-    --   reroute expandRoute
-    --   compile $ do
-    --     posts <- compilePosts
-    --     let archiveCtx =
-    --           listField postsDir postContext (return posts)
-    --             <> constField "title" "Archives"
-    --             <> defaultContext
-    --
-    --     hydrate archiveCtx $ makeItem "" >>= loadAndApplyTemplate archiveTemplate archiveCtx
+    create ["archive.html"] $ do
+      reroute expandRoute
+      compile $ do
+        posts <- loadAll "posts/**"
+        let archiveCtx =
+              listField postsDir postContext (return posts)
+                <> constField "title" "Archives"
+                <> defaultContext
+        makeItem ""
+          >>= blazeTemplater Templates.archivePage archiveCtx
+          >>= blazeTemplater Templates.defaultTemplate archiveCtx
+
+    create ["archive.html"] $ do
+      reroute expandRoute
+      compile $ do
+        posts <- compilePosts
+        let archiveCtx =
+              listField postsDir postContext (return posts)
+                <> constField "title" "Archives"
+                <> defaultContext
+
+        makeItem "" >>= loadAndApplyTemplate archiveTemplate archiveCtx
 
     -- match "root/index.html" $ do
     --   reroute takeFileName

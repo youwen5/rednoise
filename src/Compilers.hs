@@ -13,6 +13,7 @@ import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5 (Html)
 import Utils
 
+-- | Converts `("foo", "bar")` to `--input foo=bar`, which can be passed as args to Typst CLI, to make `sys.inputs.foo` available in the document, with value `bar.`
 kvsToTypstArgs :: [(String, String)] -> [String]
 kvsToTypstArgs [] = []
 kvsToTypstArgs xs =
@@ -40,8 +41,7 @@ typstIndexCompiler ctx = do
   title <- getStringField ctx body "title"
   posts <- loadAll "posts/**"
   sortedPosts <- recentFirst posts
-  let archiveCtx = listField "posts" postContext (return sortedPosts)
-  pairs <- flattenContext (jsonListHandler keys) ["posts"] archiveCtx body
+  pairs <- flattenContext (jsonListHandler keys) ["posts"] (archiveContext sortedPosts) body
   transformed <-
     unsafeCompiler $ typstProcessor filePath (itemBody body) pairs
   makeItem transformed
