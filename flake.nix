@@ -162,7 +162,7 @@
           };
 
           typst-html-wrapper = pkgs.writeShellScriptBin "typst-html-wrapper" ''
-            ${pkgs.lib.getExe typst} compile "$@" --features html --format html - - | head -n -1 | tail -n +7
+            ${pkgs.lib.getExe typst} compile "$@" --features html --format html - - | head -n -2 | tail -n +8
           '';
         };
       }
