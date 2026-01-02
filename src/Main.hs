@@ -6,7 +6,11 @@ import Style
 import Templates
 import Utils
 
+import Data.Maybe (fromMaybe)
+import Data.UnixTime (UnixTime (..), formatUnixTime, webDateFormat)
+import Data.Version (showVersion)
 import Hakyll
+import System.Environment.Blank (getEnvDefault)
 import System.FilePath (
   dropExtension,
   replaceBaseName,
@@ -16,13 +20,39 @@ import System.FilePath (
   takeFileName,
   (</>),
  )
+import System.Info
 import Text.Blaze.Html.Renderer.String
+import Text.Pandoc.UTF8 (toString)
+import Text.Read (readMaybe)
 
 main :: IO ()
 main = generateSite
 
+data EnvData = EnvData {gitHash :: IO String, ghcVersion :: String, lastCommitTimestamp :: IO UnixTime}
+
+envData :: EnvData
+envData =
+  EnvData
+    { gitHash = getEnvDefault "GIT_COMMIT_HASH" "PLACEHOLDER_HASH"
+    , ghcVersion = showVersion compilerVersion
+    , lastCommitTimestamp = do
+        x <- getEnvDefault "LAST_COMMIT_TIMESTAMP" "0"
+        pure $ UnixTime (fromMaybe 0 $ readMaybe x) 0
+    }
+
 generateSite :: IO ()
-generateSite =
+generateSite = do
+  gitHash' <- gitHash envData
+  lastCommitTimestamp' <- lastCommitTimestamp envData
+  formattedTime <- formatUnixTime webDateFormat lastCommitTimestamp'
+  let extraContext =
+        constField "commit-hash" gitHash'
+          <> constField "ghc-version" (ghcVersion envData)
+          <> constField "last-commit-timestamp" (toString formattedTime)
+  let defaultContext =
+        extraContext
+          <> rednoiseContext
+  let postContext = extraContext <> Utils.postContext
   hakyll $ do
     match "images/*" $ do
       sameRoute
@@ -50,7 +80,6 @@ generateSite =
       compile compressCssCompiler
 
     match "posts/**.typ" $ do
-      -- route $ setExtension "html"
       reroute $
         dropFirstParent
           . (</> "index.html")
@@ -68,7 +97,7 @@ generateSite =
         let archiveCtx =
               listField postsDir postContext (return posts)
                 <> constField "title" "Archives"
-                <> rednoiseContext
+                <> defaultContext
         makeItem ""
           >>= blazeTemplater Templates.archivePage archiveCtx
           >>= blazeTemplater Templates.wideTemplate archiveCtx
@@ -76,14 +105,14 @@ generateSite =
     match "root/index.typ" $ do
       reroute $ takeFileName . flip replaceExtension "html"
       compile $
-        typstIndexCompiler rednoiseContext
-          >>= blazeTemplater indexTemplate rednoiseContext
+        typstIndexCompiler defaultContext
+          >>= blazeTemplater indexTemplate defaultContext
 
     match ("cv/index.typ" .||. "cv/short.typ") $ do
       route $ setExtension "html"
       compile $
-        typstHtmlCompiler rednoiseContext
-          >>= blazeTemplater Templates.defaultTemplate rednoiseContext
+        typstHtmlCompiler defaultContext
+          >>= blazeTemplater Templates.defaultTemplate defaultContext
 
     match "cv/index.typ" $ version "pdf" $ do
       reroute $ \p ->
@@ -106,12 +135,11 @@ generateSite =
     match "root/*.typ" $ do
       reroute toRootHTML
       compile $
-        typstHtmlCompiler rednoiseContext
-          >>= blazeTemplater Templates.defaultTemplate rednoiseContext
+        typstHtmlCompiler defaultContext
+          >>= blazeTemplater Templates.defaultTemplate defaultContext
 
     match "templates/*" $ compile templateBodyCompiler
 
     create ["atom.xml"] $ makeFeed renderAtom
     create ["feed.xml"] $ makeFeed renderRss
     create ["feed.json"] $ makeFeed renderJson
-

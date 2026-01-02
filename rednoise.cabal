@@ -46,9 +46,11 @@ executable rednoise
     filepath,
     hakyll,
     liquidhaskell,
+    pandoc,
     process,
     temporary,
     text,
+    unix-time,
 
   default-language: GHC2024
   default-extensions:
