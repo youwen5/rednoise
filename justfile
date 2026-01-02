@@ -21,3 +21,6 @@ hoogle:
 # Run cabal repl
 repl *ARGS:
     cabal repl {{ ARGS }}
+
+test-prod:
+    nix run .#preview-full
