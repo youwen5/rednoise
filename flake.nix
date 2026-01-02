@@ -11,6 +11,11 @@
       url = "github:youwen5/valkyrie";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -21,6 +26,7 @@
       haskellNix,
       pre-commit,
       valkyrie-font,
+      treefmt-nix,
     }:
     let
       supportedSystems = [
@@ -57,7 +63,6 @@
               shell.buildInputs =
                 (with pkgs; [
                   just
-                  live-server
                   tailwindcss_4
                   self.packages.${system}.typst-html-wrapper
                   rsync
@@ -83,43 +88,27 @@
             self.packages.${system}.html-shim
           ]
         );
+
+        treefmtEval = treefmt-nix.lib.evalModule pkgs ((import ./nix/treefmt.nix) { inherit pkgs; });
+
       in
       flake
       // {
+        formatter = treefmtEval.config.build.wrapper;
+
         checks = {
+
           pre-commit-check = pre-commit.lib.${system}.run {
             src = ./.;
             hooks = {
+              treefmt.enable = true;
+              treefmt.package = treefmtEval.config.build.wrapper;
               check-merge-conflicts.enable = true;
-              commitizen.enable = true;
-              convco.enable = true;
-              cabal-gild.enable = true;
               hlint.enable = true;
-              fourmolu = {
-                enable = true;
-              };
-              mdsh.enable = true;
-              deadnix.enable = true;
-              nil.enable = true;
-              nixfmt-rfc-style.enable = true;
-              statix.enable = true;
-              ripsecrets.enable = true;
-              typos.enable = true;
-              vale.enable = false;
-              typstyle.enable = true;
-              check-yaml.enable = true;
-              yamlfmt.enable = true;
-              check-case-conflicts.enable = true;
-              check-executables-have-shebangs.enable = true;
-              check-shebang-scripts-are-executable.enable = true;
-              check-symlinks.enable = true;
-              check-vcs-permalinks.enable = true;
-              detect-private-keys.enable = true;
+              cabal-gild.enable = true;
+              trim-trailing-whitespace.enable = true;
               end-of-file-fixer.enable = true;
               mixed-line-endings.enable = true;
-              tagref.enable = true;
-              trim-trailing-whitespace.enable = true;
-              check-toml.enable = true;
             };
           };
         };
