@@ -26,9 +26,8 @@ pageHead title pagetitle slug =
           Just slug' -> toHtml slug'
           Nothing -> toHtml $ "Youwen Wu >> " ++ fromMaybe "You aren't supposed to see this." title
       meta ! name "og:site_name" ! content "Youwen’s Website"
-      link ! rel "stylesheet" ! href "/css/syntax.css"
       link ! rel "stylesheet" ! href "/css/main.css"
-      link ! rel "icon" ! href "/favicon.svg"
+      link ! rel "icon" ! href "/favicon.ico"
       link
         ! rel "preload"
         ! as "font"

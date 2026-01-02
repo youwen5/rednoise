@@ -28,6 +28,15 @@ title: Youwen Wu >> Welcome Home.
 
 #let posts = json(bytes(sys.inputs.posts))
 
+= todo (before shipping)
+
+- archive page
+- sidebar (perhaps dynamic gen?)
+- polish
+- deployment (font download, embed into nix environment)
+- merge codebase upstream
+- footer, with ghc version + git commit (from env)
+
 I'm a member of the
 #link("https://www.mit.edu/~ajzd/opencompute/")[MIT OpenCompute Laboratory]
 and benevolent dictator at #link("https://functor.systems")[functor.systems].

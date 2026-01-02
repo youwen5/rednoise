@@ -8,8 +8,10 @@ import Utils
 
 import Hakyll
 import System.FilePath (
+  dropExtension,
   replaceBaseName,
   replaceExtension,
+  takeBaseName,
   takeDirectory,
   takeFileName,
   (</>),
@@ -34,43 +36,26 @@ generateSite =
       sameRoute
       compile copyFileCompiler
 
-    create ["css/style.css"] $ do
-      sameRoute
-      compile $ makeItem css
+    match "root/favicon.ico" $ do
+      reroute takeFileName
+      compile copyFileCompiler
+
     match "css/main.css" $ do
       sameRoute
-      compile $ makeCompiler tailwindProcessor
+      compile $ do
+        makeCompiler tailwindProcessor
 
     match "css/*.css" $ do
       sameRoute
       compile compressCssCompiler
 
-    -- match (fromList topLevel) $ do
-    --   route $ setExtension "html"
-    --   make pandocCompiler
-
-    -- match "posts/*.markdown" $ do
-    --   route $ setExtension "html"
-    --   build postContext $
-    --     pandocCompiler
-    --       >>= loadAndApplyTemplate postTemplate postContext
-    --       >>= saveSnapshot snapshotDir
-
-    -- match "posts/*.markdown" $ do
-    --   route $ setExtension "html"
-    --   compile $
-    --     pandocCompiler
-    --       >>= saveSnapshot snapshotDir
-    --       >>= blazeTemplater Templates.defaultTemplate postContext
-
     match "posts/**.typ" $ do
       -- route $ setExtension "html"
-      reroute $ takeFileName . flip replaceExtension "html"
-      reroute $ \p ->
+      reroute $
         dropFirstParent
-          ( takeDirectory p
-              </> takeFileName (replaceExtension p "html")
-          )
+          . (</> "index.html")
+          . dropExtension
+
       compile $
         typstHtmlCompiler postContext
           >>= saveSnapshot snapshotDir
@@ -87,16 +72,6 @@ generateSite =
         makeItem ""
           >>= blazeTemplater Templates.archivePage archiveCtx
           >>= blazeTemplater Templates.wideTemplate archiveCtx
-
-    -- match "root/index.html" $ do
-    --   reroute takeFileName
-    --   compile $ do
-    --     posts <- compilePosts
-    --     let indexCtx =
-    --           listField "posts" postContext (return posts)
-    --             `mappend` defaultContext
-    --
-    --     hydrate indexCtx $ getResourceBody >>= applyAsTemplate indexCtx
 
     match "root/index.typ" $ do
       reroute $ takeFileName . flip replaceExtension "html"
