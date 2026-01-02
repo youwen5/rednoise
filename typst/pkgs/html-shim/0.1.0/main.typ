@@ -205,19 +205,5 @@
     }
   }
 
-  show raw.where(block: true): it => context {
-    if target() == "html" {
-      if it.lang == none {
-        return it
-      }
-
-      html.elem("pre", html.elem(
-        "code",
-        attrs: (class: "language-" + it.lang),
-        it.text,
-      ))
-    } else { it }
-  }
-
   body
 }
