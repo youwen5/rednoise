@@ -670,7 +670,8 @@
           "haskellNix",
           "nixpkgs-unstable"
         ],
-        "pre-commit": "pre-commit"
+        "pre-commit": "pre-commit",
+        "valkyrie-font": "valkyrie-font"
       }
     },
     "stackage": {
@@ -701,6 +702,26 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "valkyrie-font": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1746987703,
+        "narHash": "sha256-nohUzFfguTGYeZCe5Ky5TXPqZhei5HuoPKsUsPbBN5g=",
+        "owner": "youwen5",
+        "repo": "valkyrie",
+        "rev": "8a22da3b7743e052776013b48ed829cee4c48650",
+        "type": "github"
+      },
+      "original": {
+        "owner": "youwen5",
+        "repo": "valkyrie",
         "type": "github"
       }
     }

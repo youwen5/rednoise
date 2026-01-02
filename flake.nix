@@ -5,6 +5,12 @@
     flake-utils.url = "github:numtide/flake-utils";
     pre-commit.url = "github:cachix/git-hooks.nix";
     pre-commit.inputs.nixpkgs.follows = "nixpkgs";
+
+    # this is a professional, licensed font, in a private repository
+    valkyrie-font = {
+      url = "github:youwen5/valkyrie";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -14,6 +20,7 @@
       flake-utils,
       haskellNix,
       pre-commit,
+      valkyrie-font,
     }:
     let
       supportedSystems = [
@@ -53,6 +60,7 @@
                   live-server
                   tailwindcss_4
                   self.packages.${system}.typst-html-wrapper
+                  rsync
                 ])
                 ++ [ typst ];
             };
@@ -90,7 +98,6 @@
               fourmolu = {
                 enable = true;
               };
-              markdownlint.enable = true;
               mdsh.enable = true;
               deadnix.enable = true;
               nil.enable = true;
@@ -135,7 +142,8 @@
                 }
             '';
           };
-          site = pkgs.stdenvNoCC.mkDerivation {
+          # website without licensed fonts -- everything will work but no fonts
+          site-demo = pkgs.stdenvNoCC.mkDerivation {
             name = "site";
             src = ./.;
             nativeBuildInputs = [ self.packages.${system}.rednoise ];
@@ -158,7 +166,30 @@
             '';
           };
 
+          # actual website to be deployed in production (cannot be built without access to private repo)
+          site-full = self.packages.${system}.site-demo.overrideAttrs (
+            finalAttrs: prevAttrs: {
+              name = "site";
+
+              TYPST_FONT_PATHS = pkgs.symlinkJoin {
+                name = "fonts";
+                paths = [
+                  valkyrie-font.packages.${pkgs.stdenv.hostPlatform.system}.default
+                ];
+              };
+
+              buildPhase =
+                # install licensed fonts from private repo
+                ''
+                  cp "${valkyrie-font}/WOFF2/OT-family/Valkyrie-OT/"*.woff2 fonts
+                  cp "${valkyrie-font}/concourse-index/WOFF2/concourse_index_regular.woff2" fonts
+                ''
+                + prevAttrs.buildPhase;
+            }
+          );
+
           default = self.packages.${system}.rednoise;
+
           html-shim = pkgs.buildTypstPackage {
             pname = "html-shim";
             version = "0.1.0";
@@ -169,12 +200,62 @@
             ${pkgs.lib.getExe typst} compile "$@" --features html --format html - - | head -n -2 | tail -n +8
           '';
         };
+
+        apps =
+          let
+            preview-drv =
+              withFonts:
+              let
+                siteFiles =
+                  if withFonts then self.packages.${system}.site-full else self.packages.${system}.site-demo;
+                caddyfile = pkgs.writeText "Caddyfile" ''
+                  :8000 {
+                      root * ${siteFiles}
+                      file_server
+                      try_files {path} {path}.html {path}/ =404
+                      header Cache-Control max-age=0
+                  }
+                '';
+
+                formattedCaddyfile = pkgs.runCommand "Caddyfile" {
+                  nativeBuildInputs = [ pkgs.caddy ];
+                } ''(caddy fmt ${caddyfile} || :) > "$out"'';
+
+                script = pkgs.writeShellApplication {
+                  name = "preview";
+
+                  runtimeInputs = [ pkgs.caddy ];
+
+                  text = "caddy run --config ${formattedCaddyfile} --adapter caddyfile";
+                };
+
+              in
+              script;
+          in
+          {
+            default = flake-utils.lib.mkApp {
+              drv = preview-drv false;
+            };
+
+            # only works if you have access to my private repo containing licensed fonts
+            preview-full = flake-utils.lib.mkApp {
+              drv = preview-drv true;
+            };
+          };
       }
     );
 
   nixConfig = {
-    extra-substituters = [ "https://cache.iog.io" ];
-    extra-trusted-public-keys = [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" ];
+    extra-substituters = [
+      "https://cache.iog.io"
+      "https://luminite.cachix.org"
+      "https://nix-community.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "luminite.cachix.org-1:+VgO/GJMmqsp4U79+QFle7TtEwT8LrJXPiImA8a3a3o="
+    ];
     allow-import-from-derivation = "true";
   };
 }
