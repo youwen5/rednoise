@@ -1,7 +1,7 @@
 ---
 title: "Anatomy of a NixOS module"
 published: 2025-08-31
-description: "A short primer on the NixOS module system"
+description: "A not-quite-comprehensive primer on the NixOS module system."
 ---
 
 // date: datetime(day: 31, year: 2025, month: 8),

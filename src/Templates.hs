@@ -12,20 +12,53 @@ import Text.Blaze.Html5 as H
 import Text.Blaze.Html5.Attributes as A
 import Utils
 
-pageHead :: Maybe String -> Maybe String -> Maybe String -> Html
-pageHead title pagetitle slug =
+data PageMetadata = PageMetadata
+  { title :: Maybe String
+  , pagetitle :: Maybe String
+  , slug :: Maybe String
+  , description :: Maybe String
+  , thumbnail :: Maybe String
+  , url :: Maybe String
+  }
+
+pageHead ::
+  PageMetadata ->
+  Html
+pageHead (PageMetadata{title, pagetitle, slug, description, thumbnail, url}) = do
+  let description' =
+        toValue $
+          fromMaybe
+            "A personal website, and roughly a blog about mathematics, in particular homotopy-coherent and categorical, as well as programming, games, culture, and such."
+            description
+  let thumbnail' =
+        toValue $
+          fromMaybe
+            "/static/logo/button.png"
+            thumbnail
+  let title' = case pagetitle of
+        Just pagetitle' -> pagetitle'
+        Nothing -> case slug of
+          Just slug' -> slug'
+          Nothing -> "Youwen Wu >> " ++ fromMaybe "Youwen Wu" title
+  let url' = toValue $ fromMaybe "https://web.youwen.dev" url
   H.head $
     do
       meta ! charset "utf-8"
       meta ! httpEquiv "x-ua-compatible" ! content "ie=edge"
       meta ! name "viewport" ! content "width=device-width, initial-scale=1"
-      H.title $ forM_ title toHtml
-      H.title $ case pagetitle of
-        Just pagetitle' -> toHtml pagetitle'
-        Nothing -> case slug of
-          Just slug' -> toHtml slug'
-          Nothing -> toHtml $ "Youwen Wu >> " ++ fromMaybe "You aren't supposed to see this." title
+      H.title $ toHtml title'
+      meta ! name "og:title" ! (content . toValue) title'
       meta ! name "og:site_name" ! content "Youwen’s Website"
+      meta
+        ! name "og:description"
+        ! content description'
+      meta
+        ! name "description"
+        ! content description'
+      meta ! name "og:image" ! content thumbnail'
+      meta ! name "og:type" ! content "website"
+      meta ! name "og:url" ! content url'
+      meta ! name "robots" ! content "index, follow"
       link ! rel "stylesheet" ! href "/css/main.css"
       link ! rel "icon" ! href "/favicon.ico"
       link
@@ -38,7 +71,50 @@ pageHead title pagetitle slug =
         ! as "font"
         ! href "/fonts/valkyrie_ot_a_italic.woff2"
         ! crossorigin ""
+      script ! defer "" ! src "/cdn-cgi/zaraz/i.js" $ ""
       H.style inlinedFontCss
+
+type SidebarList = [(String, String)]
+
+navItems :: SidebarList
+navItems =
+  [ ("About", "/about")
+  , ("Explore", "/explore")
+  , ("Now", "/now")
+  , ("CV", "/cv")
+  ]
+
+hackingItems :: SidebarList
+hackingItems =
+  [ ("functor.systems", "https://functor.systems")
+  , ("How this site was made", "/colophon")
+  , ("How I do computing", "/computing")
+  , ("Anatomy of a NixOS module", "/hacking/anatomy-of-a-nixos-module")
+  ]
+
+mathItems :: SidebarList
+mathItems = [("Three isomorphism theorems", "/math/three-isomorphism-theorems")]
+
+funItems :: SidebarList
+funItems = [("Favorite songs", "/misc/fav-songs")]
+
+otherItems :: SidebarList
+otherItems =
+  [ ("Frequently asked questions", "/faqs")
+  , ("Impressum", "/impressum")
+  , ("About this site", "/about-this-site")
+  ]
+
+itemToHtml :: SidebarList -> Html
+itemToHtml = mapM_ $ \x ->
+  li $
+    a ! class_ "hover:bg-surface transition-colors" ! (href . toValue) (snd x) $
+      (toHtml . fst) x
+
+sidebarSection :: String -> SidebarList -> Html
+sidebarSection title items = H.div ! class_ "space-y-1" $ do
+  p ! class_ "all-smallcaps text-lg" $ toHtml title
+  ul ! class_ "space-y-2 text-subtle text-base" $ itemToHtml items
 
 desktopSidebar :: Html
 desktopSidebar = aside ! class_ "hidden md:block w-64 flex-none" $ do
@@ -49,47 +125,11 @@ desktopSidebar = aside ! class_ "hidden md:block w-64 flex-none" $ do
       preEscapedToHtml logoSvg
       H.span ! class_ "italic text-[2.5em] select-none -translate-y-[6px]" $ "youwen wu"
   nav ! class_ "space-y-4 mt-4" $ do
-    ul ! class_ "space-y-2 text-love text-2xl" $ do
-      li $ a ! class_ "hover:bg-surface transition-colors" ! href "/about" $ "About"
-      li $ a ! class_ "hover:bg-surface transition-colors" ! href "/now" $ "Now"
-      li $ a ! class_ "hover:bg-surface transition-colors" ! href "/cv" $ "CV"
-    H.div ! class_ "space-y-1" $ do
-      p ! class_ "all-smallcaps text-lg" $ "Hacking"
-      ul ! class_ "space-y-2 text-subtle text-base" $ do
-        li $
-          a ! class_ "hover:bg-surface transition-colors" ! href "https://functor.systems" $
-            "functor.systems"
-        li $
-          a ! class_ "hover:bg-surface transition-colors" ! href "/software/epilogue" $
-            "How this site was made"
-        li $ a ! class_ "hover:bg-surface transition-colors" ! href "/tools" $ "Favorite tools"
-        li
-          $ a
-            ! class_ "hover:bg-surface transition-colors"
-            ! href "/writing/anatomy-of-a-nixos-module"
-          $ "Anatomy of a NixOS module"
-    H.div ! class_ "space-y-1" $ do
-      p ! class_ "all-smallcaps text-lg" $ "Math"
-      ul ! class_ "space-y-2 text-subtle text-base" $
-        li $
-          a ! class_ "hover:bg-surface transition-colors" ! href "/math/three-isomorphism-theorems" $
-            "Three isomorphism theorems"
-    H.div ! class_ "space-y-1" $ do
-      p ! class_ "all-smallcaps text-lg" $ "Fun"
-      ul ! class_ "space-y-2 text-subtle text-base" $
-        li $
-          a ! class_ "hover:bg-surface transition-colors" ! href "/misc/fav-songs" $
-            "Favorite songs"
-    H.div ! class_ "space-y-1" $ do
-      p ! class_ "all-smallcaps text-lg" $ "Other"
-      ul ! class_ "space-y-2 text-subtle text-base" $ do
-        li $
-          a ! class_ "hover:bg-surface transition-colors" ! href "/faqs" $
-            "Frequently asked questions"
-        li $ a ! class_ "hover:bg-surface transition-colors" ! href "/impressum" $ "Impressum"
-        li $
-          a ! class_ "hover:bg-surface transition-colors" ! href "/about-this-site" $
-            "About this site"
+    ul ! class_ "space-y-2 text-love text-2xl" $ itemToHtml navItems
+    sidebarSection "Hacking" hackingItems
+    sidebarSection "Math" mathItems
+    sidebarSection "Fun" funItems
+    sidebarSection "Other" otherItems
   H.div ! class_ "mt-6" $
     a ! href "/buttons" ! class_ "hover:brightness-75" $
       img ! class_ "w-20" ! src "/static/logo/button.png" ! alt "my button"
@@ -108,47 +148,11 @@ mobileHeader = header ! class_ "md:hidden border-b border-dashed border-muted mb
   details ! class_ "w-full mt-4" $ do
     H.summary ! class_ "text-center smallcaps text-xl cursor-pointer" $ "menu"
     nav ! class_ "space-y-4 text-2xl mt-3" $ do
-      ul ! class_ "space-y-3 text-2xl text-love" $ do
-        li $ a ! class_ "hover:bg-surface transition-colors" ! href "/about" $ "About"
-        li $ a ! class_ "hover:bg-surface transition-colors" ! href "/now" $ "Now"
-        li $ a ! class_ "hover:bg-surface transition-colors" ! href "/cv" $ "CV"
-      H.div ! class_ "space-y-2" $ do
-        H.span ! class_ "all-smallcaps text-lg" $ "Hacking"
-        ul ! class_ "space-y-2 text-subtle text-lg" $ do
-          li $
-            a ! class_ "hover:bg-surface transition-colors" ! href "https://functor.systems" $
-              "functor.systems"
-          li $
-            a ! class_ "hover:bg-surface transition-colors" ! href "/software/epilogue" $
-              "How this site was made"
-          li $ a ! class_ "hover:bg-surface transition-colors" ! href "/tools" $ "Favorite tools"
-          li
-            $ a
-              ! class_ "hover:bg-surface transition-colors"
-              ! href "/writing/anatomy-of-a-nixos-module"
-            $ "Anatomy of a NixOS module"
-      H.div ! class_ "space-y-2" $ do
-        H.span ! class_ "all-smallcaps text-lg" $ "Math"
-        ul ! class_ "space-y-2 text-subtle text-lg" $
-          li $
-            a ! class_ "hover:bg-surface transition-colors" ! href "/math/three-isomorphism-theorems" $
-              "Three isomorphism theorems"
-      H.div ! class_ "space-y-2" $ do
-        H.span ! class_ "all-smallcaps text-lg" $ "Fun"
-        ul ! class_ "space-y-2 text-subtle text-lg" $
-          li $
-            a ! class_ "hover:bg-surface transition-colors" ! href "/misc/fav-songs" $
-              "Favorite songs"
-      H.div ! class_ "space-y-1" $ do
-        H.span ! class_ "all-smallcaps text-lg" $ "Other"
-        ul ! class_ "space-y-2 text-subtle text-lg" $ do
-          li $
-            a ! class_ "hover:bg-surface transition-colors" ! href "/faqs" $
-              "Frequently asked questions"
-          li $ a ! class_ "hover:bg-surface transition-colors" ! href "/impressum" $ "Impressum"
-          li $
-            a ! class_ "hover:bg-surface transition-colors" ! href "/about-this-site" $
-              "About this site"
+      ul ! class_ "space-y-3 text-2xl text-love" $ itemToHtml navItems
+      sidebarSection "Hacking" hackingItems
+      sidebarSection "Math" mathItems
+      sidebarSection "Fun" funItems
+      sidebarSection "Other" otherItems
 
 pageFooter :: String -> String -> String -> Html
 pageFooter commit ghc time = footer ! class_ "border-t mt-8 border-solid border-muted mb-4 text-sm text-muted py-1" $ do
@@ -215,11 +219,14 @@ defaultTemplate_ enableComments wide ctx item =
     ghc <- getField' "ghc-version"
     time <- getField' "last-commit-timestamp"
     commitHash <- getField' "commit-hash"
+    url <- getField' "url"
+    thumbnail <- getField' "thumbnail"
+    description <- getField' "description"
     let ghc' = fromMaybe "GHC_VER_PLACEHOLDER" ghc
     let commitHash' = fromMaybe "COMMIT_HASH_PLACEHOLDER" commitHash
     let time' = fromMaybe "TIME_PLACEHOLDER" time
     return $ docTypeHtml ! lang "en" $ do
-      pageHead title pagetitle slug
+      pageHead PageMetadata{title, pagetitle, slug, thumbnail, description, url}
       body
         ! class_
           "antialiased mt-4 lg:mt-20 leading-relaxed mx-auto max-w-[1200px] flex gap-8 px-4 lg:px-6"
@@ -242,7 +249,7 @@ defaultTemplate_ enableComments wide ctx item =
                   ! class_
                     "prose-lg lg:prose-xl prose-headings:all-smallcaps prose-headings:text-love prose-h1:text-foreground prose-list-snazzy prose-table-snazzy scroll-smooth mt-8"
                   $ preEscapedToHtml (itemBody item)
-                when (enableComments || (fromMaybe "false" enableComments' == "true")) giscusComponent
+                when (enableComments || fromMaybe "false" enableComments' == "true") giscusComponent
                 pageFooter commitHash' ghc' time'
  where
   getField' = getStringField ctx item
@@ -277,7 +284,7 @@ postListItem ctx item = do
           "flex justify-between flex-wrap-reverse content-center gap-x-2 gap-y-1 md:gap-4"
         $ do
           H.span ! class_ "inline-flex gap-3" $ toHtml $ fromMaybe "broken" title
-          H.span ! class_ "inline-flex gap-4" $ do
+          H.span ! class_ "inline-flex gap-4" $
             forM_
               date
               ( (H.span ! class_ "font-light text-lg my-auto")
@@ -288,8 +295,6 @@ postListItem ctx item = do
         (p ! class_ "text-subtle text-sm md:pl-2 md:border-l-2 md:border-subtle") . toHtml
  where
   getField' = getStringField ctx item
-
--- <span class="inline-flex gap-3"><span class="my-auto w-[24px]"></span>Three Isomorphism Theorems in Linear Algebra</span>
 
 archivePage :: Context String -> Item String -> Compiler Html
 archivePage ctx item = do
@@ -312,12 +317,14 @@ indexTemplate ctx item =
     ghc <- getField' "ghc-version"
     time <- getField' "last-commit-timestamp"
     commitHash <- getField' "commit-hash"
+    url <- getField' "url"
     let ghc' = fromMaybe "GHC_VER_PLACEHOLDER" ghc
     let commitHash' = fromMaybe "COMMIT_HASH_PLACEHOLDER" commitHash
     let time' = fromMaybe "TIME_PLACEHOLDER" time
 
     return $ docTypeHtml ! lang "en" $ do
-      pageHead title pagetitle slug
+      pageHead
+        PageMetadata{title, pagetitle, slug, thumbnail = Nothing, description = Nothing, url}
       body
         ! class_
           "antialiased mt-4 lg:mt-20 leading-relaxed mx-auto max-w-[1200px] flex gap-8 px-4 lg:px-6"

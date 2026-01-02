@@ -61,6 +61,13 @@ makeFeed renderer = do
         =<< loadAllSnapshots "posts/**" "content"
     renderer feed feedCtx posts
 
+-- | dir/foo/bar/whatever -> /foo/bar/whatever/index.html
+toRootHTML :: FilePath -> FilePath
+toRootHTML =
+  dropFirstParent
+    . (</> "index.html")
+    . dropExtension
+
 globbify :: FilePath -> Pattern
 globbify dir = fromGlob $ dir </> "*"
 
@@ -72,10 +79,6 @@ sameRoute = route idRoute
 
 reroute :: (FilePath -> FilePath) -> Rules ()
 reroute f = route $ customRoute $ f . toFilePath
-
--- take e.g. root/abc.md -> /abc/index.html
-toRootHTML :: FilePath -> FilePath
-toRootHTML p = takeBaseName p </> "index.html"
 
 -- drop the first parent dir of a path, if it exists
 dropFirstParent :: FilePath -> FilePath

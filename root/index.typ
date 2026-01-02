@@ -28,15 +28,6 @@ title: Youwen Wu >> Welcome Home.
 
 #let posts = json(bytes(sys.inputs.posts))
 
-= todo (before shipping)
-
-- archive page
-- sidebar (perhaps dynamic gen?)
-- polish
-- deployment (font download, embed into nix environment)
-- merge codebase upstream
-- footer, with ghc version + git commit (from env)
-
 I'm a member of the
 #link("https://www.mit.edu/~ajzd/opencompute/")[MIT OpenCompute Laboratory]
 and benevolent dictator at #link("https://functor.systems")[functor.systems].
@@ -160,7 +151,7 @@ what I'm up to right now. Or explore the other pages on this website.
   ]
 }
 
-#html.elem("div", {
+#html.elem("div", attrs: (class: "mt-2"), {
   for post in posts.slice(0, count: 4) {
     update(date: post.date, href: post.url, {
       icon(name: "newspaper")
@@ -168,35 +159,9 @@ what I'm up to right now. Or explore the other pages on this website.
     })
   }
   update(href: "/archive", date: icon(name: "move-right"), {
-    icon(name: "book")
+    icon(name: "folder-closed")
     [Archive (all posts)]
   })
-  // update(date: "Aug 31, 2025", href: "/writing/anatomy-of-a-nixos-module", {
-  //   icon(name: "code")
-  //   [Explainer: the anatomy of a NixOS module]
-  // })
-  // update(date: "May 19, 2025", href: "/math/three-isomorphism-theorems", {
-  //   icon(name: "newspaper")
-  //   [Three isomorphism theorems in linear algebra]
-  // })
-  //
-  // update(
-  //   date: "May 12, 2025",
-  //   href: "/writing/parallelizing-this-website-for-free",
-  //   {
-  //     icon(name: "code")
-  //     [Parallelizing this website for free]
-  //   },
-  // )
-  //
-  // update(
-  //   date: "May 10, 2025",
-  //   href: "/writing/doing-web-development-in-typst",
-  //   {
-  //     icon(name: "code")
-  //     [Doing web development in Typst]
-  //   },
-  // )
 })
 
 

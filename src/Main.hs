@@ -80,10 +80,7 @@ generateSite = do
       compile compressCssCompiler
 
     match "posts/**.typ" $ do
-      reroute $
-        dropFirstParent
-          . (</> "index.html")
-          . dropExtension
+      reroute toRootHTML
 
       compile $
         typstHtmlCompiler postContext
@@ -132,8 +129,9 @@ generateSite = do
             p
       compile typstPdfCompiler
 
-    match "root/*.typ" $ do
+    match "root/**.typ" $ do
       reroute toRootHTML
+
       compile $
         typstHtmlCompiler defaultContext
           >>= blazeTemplater Templates.defaultTemplate defaultContext
